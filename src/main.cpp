@@ -20,10 +20,10 @@
 #include <ArduinoJson.h>
 // Using char* as might store in PROGMEM later
 char* MQTT_CLIENT_ID = "sensor1";
-char* MQTT_SERVER_IP = "159.65.62.175";
+char* MQTT_SERVER_IP = "159.65.62.175_";
 uint16_t MQTT_SERVER_PORT = 1883;
 char* MQTT_USER = "sensor1";
-char* MQTT_PASSWORD = "Nz9&je*wXC@kyz";
+char* MQTT_PASSWORD = "jmhtNz9&je*wXC@kyz";
 char* MQTT_SENSOR_TOPIC = "farm/sensor1";
 #endif
 
