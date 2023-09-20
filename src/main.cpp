@@ -19,27 +19,27 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 // Using char* as might store in PROGMEM later
-char* MQTT_CLIENT_ID = "office_dht22";
-char* MQTT_SERVER_IP = "192.168.1.120";
+char* MQTT_CLIENT_ID = "sensor1";
+char* MQTT_SERVER_IP = "159.65.62.175";
 uint16_t MQTT_SERVER_PORT = 1883;
-char* MQTT_USER = "homeassistant";
-char* MQTT_PASSWORD = "1234567890";
+char* MQTT_USER = "sensor1";
+char* MQTT_PASSWORD = "Nz9&je*wXC@kyz";
 char* MQTT_SENSOR_TOPIC = "farm/sensor1";
 #endif
 
-// char ssid[] = "FUsensors";
-// char pass[] = "12345678";
-char ssid[] = "PLUSNET-CFC9WG";
-char pass[] = "G7UtKycGmxGYDq";
+char ssid[] = "FARMURBAN";
+char pass[] = "FARM123!";
+// char ssid[] = "PLUSNET-CFC9WG";
+// char pass[] = "G7UtKycGmxGYDq";
 
 // #define MOCK ;
 
 #define HAVE_TEMP_HUMIDITY // Always need this
 // #define HAVE_FLOW
-// #define HAVE_TEMP_WET
+#define HAVE_TEMP_WET
 // -- Digital Inputs -- //
-// #define HAVE_LIGHT
-// #define HAVE_CO2
+#define HAVE_LIGHT
+#define HAVE_CO2
 // #define HAVE_EC
 // #define HAVE_PH
 // #define HAVE_MOISTURE
