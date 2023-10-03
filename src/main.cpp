@@ -19,7 +19,8 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 // Using char* as might store in PROGMEM later
-char* MQTT_CLIENT_ID = "sensor1";
+#define MQTT_KEEPALIVE 90
+char *MQTT_CLIENT_ID = "sensor1";
 char* MQTT_SERVER_IP = "159.65.62.175_";
 uint16_t MQTT_SERVER_PORT = 1883;
 char* MQTT_USER = "sensor1";
@@ -332,6 +333,7 @@ void connectToWifi()
     }
     Serial.print("Attempting to connect to WPA SSID: ");
     Serial.println(ssid);
+    WiFi.disconnect(); // Clear network stack https://forum.arduino.cc/t/mqtt-with-esp32-gives-timeout-exceeded-disconnecting/688723/5
     wifiStatus = WiFi.begin(ssid, pass);
     delay(10000);
     attempts++;
@@ -539,9 +541,13 @@ void reconnect() {
   while (!client.connected()) {
     Serial.println("INFO: Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect(MQTT_CLIENT_ID, MQTT_USER, MQTT_PASSWORD)) {
+    client.setKeepAlive(MQTT_KEEPALIVE);
+    if (client.connect(MQTT_CLIENT_ID, MQTT_USER, MQTT_PASSWORD))
+    {
       Serial.println("INFO: connected");
-    } else {
+    }
+    else
+    {
       Serial.print("ERROR: failed, rc=");
       Serial.print(client.state());
       Serial.println("DEBUG: try again in 5 seconds");
@@ -605,8 +611,12 @@ void loop()
   float flow = getFlow();
   int co2 = getCO2(co2Pin);
   float tempwet = getTempWet();
-  float ec = getEC(ecPin, tempwet);
-  float ph = getPH(phPin, tempwet);
+  float calibrationTemperature = tempwet;
+  if (tempwet == -1000 || tempwet == -1001 || tempwet == -1002) {
+    calibrationTemperature = tempair;
+  }
+  float ec = getEC(ecPin, calibrationTemperature);
+  float ph = getPH(phPin, calibrationTemperature);
   int moisture = getMoisture(moisturePin);
 #ifdef INFLUXDB
   postDataToInfluxDB(light, tempair, humidity, flow, co2, tempwet, ec, ph, moisture);
