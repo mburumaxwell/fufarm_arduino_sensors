@@ -20,15 +20,15 @@
 #include <ArduinoJson.h>
 // Using char* as might store in PROGMEM later
 #define MQTT_KEEPALIVE 90
-char *MQTT_CLIENT_ID = "sensor1";
-char* MQTT_SERVER_IP = "159.65.62.175_";
+char *MQTT_CLIENT_ID = "ew1";
+char* MQTT_SERVER_IP = "192.168.5.1";
 uint16_t MQTT_SERVER_PORT = 1883;
-char* MQTT_USER = "sensor1";
-char* MQTT_PASSWORD = "jmhtNz9&je*wXC@kyz";
-char* MQTT_SENSOR_TOPIC = "farm/sensor1";
+char* MQTT_USER = "hamqtt";
+char* MQTT_PASSWORD = "UbT4Rn3oY7!S9L";
+char* MQTT_SENSOR_TOPIC = "farm/ew1";
 #endif
 
-char ssid[] = "FARMURBAN";
+char ssid[] = "FUsensors";
 char pass[] = "FARM123!";
 // char ssid[] = "PLUSNET-CFC9WG";
 // char pass[] = "G7UtKycGmxGYDq";
@@ -36,7 +36,7 @@ char pass[] = "FARM123!";
 // #define MOCK ;
 
 #define HAVE_TEMP_HUMIDITY // Always need this
-// #define HAVE_FLOW
+#define HAVE_FLOW
 #define HAVE_TEMP_WET
 // -- Digital Inputs -- //
 #define HAVE_LIGHT
@@ -70,7 +70,8 @@ char pass[] = "FARM123!";
 #define SAMPLE_WINDOW 5000
 #else
 // Time in milliseconds - 5 minutes = 1000 * 60 * 5 = 300000
-#define SAMPLE_WINDOW 300000
+#define SAMPLE_WINDOW 60000
+// #define SAMPLE_WINDOW 5000
 #endif
 
 // Analog Inputs
