@@ -14,14 +14,20 @@
 #include "DFRobot_EC.h"
 #include "DFRobot_PH.h"
 
+#define BUFFER_SIZE 256
+
+# define HOMEASSISTANT
 # define MQTT
+#ifdef HOMEASSISTANT
+String HA_PREFIX = "homeassistant/sensor";
+#endif
 #ifdef MQTT
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 // Using char* as might store in PROGMEM later
 #define MQTT_KEEPALIVE 90
-char *MQTT_CLIENT_ID = "ew1";
-char* MQTT_SERVER_IP = "192.168.5.1";
+String MQTT_CLIENT_ID = "ew1";
+char* MQTT_SERVER_IP = "192.168.8.100";
 uint16_t MQTT_SERVER_PORT = 1883;
 char* MQTT_USER = "hamqtt";
 char* MQTT_PASSWORD = "UbT4Rn3oY7!S9L";
@@ -491,6 +497,117 @@ int postDataToInfluxDB(int light, float tempair, float humidity, float flow, int
 }
 #endif // INFLUXDB
 
+#ifdef HOMEASSISTANT
+String haSensorName(String name){
+  String sensor_name = MQTT_CLIENT_ID + "_" + name;
+  return sensor_name;
+}
+
+String haSensorTopic(String name, String type){
+  String sensor_name = haSensorName(name);
+  String topic = HA_PREFIX + "/" + sensor_name + "/" + type;
+  return topic;
+}
+
+void haAnnounceSensor(String name, String measurement, JsonDocument& payload, char buffer[]){
+  String sensor_name = haSensorName(name);
+  String config_topic = haSensorTopic(name, "config");
+  String state_topic = haSensorTopic(name, "state");
+  payload["name"] = sensor_name;
+  payload["device_class"] = "";
+  payload["state_topic"] = state_topic;
+  payload["unique_id"] = sensor_name;
+  payload["unit_of_measurement"] = measurement;
+  payload["expire_after"] = (String)(SAMPLE_WINDOW * 2);
+  serializeJson(payload, buffer, BUFFER_SIZE);
+  client.publish(config_topic.c_str(), buffer, true);
+  payload.clear();
+}
+
+void haRegisterSensors() {
+  StaticJsonDocument<200> payload;
+  char buffer[BUFFER_SIZE];
+#ifdef HAVE_LIGHT
+  haAnnounceSensor(String("light"), String("lux"), payload, buffer);
+#endif
+#ifdef HAVE_TEMP_HUMIDITY
+  haAnnounceSensor(String("temperature"), String("°C"), payload, buffer);
+  haAnnounceSensor(String("humidity"), String("%"), payload, buffer);
+#endif
+#ifdef HAVE_FLOW
+  haAnnounceSensor(String("flow"), String("L"), payload, buffer);
+#endif
+#ifdef HAVE_TEMP_WET
+  haAnnounceSensor(String("tempwet"), String("°C"), payload, buffer);
+#endif
+#ifdef HAVE_CO2
+  haAnnounceSensor(String("co2"), String("ppm"), payload, buffer);
+#endif
+#ifdef HAVE_EC
+  haAnnounceSensor(String("ec"), String("ec"), payload, buffer);
+#endif
+#ifdef HAVE_PH
+  haAnnounceSensor(String("ph"), String("ph"), payload, buffer);
+#endif
+#ifdef HAVE_MOISTURE
+  haAnnounceSensor(String("moisture"), String("count"), payload, buffer);
+#endif
+}
+
+void haPublishSensor(String name, String value){
+  String topic = haSensorTopic(name, "state");
+  client.publish(topic.c_str(), value.c_str(), true);
+}
+
+  void haPublishData(int light, float tempair, float humidity, float flow, int co2, float tempwet, float ec, float ph, int moisture) {
+    String value = "";
+    String sensor = "";
+#ifdef HAVE_LIGHT
+    sensor = "light";
+    value = (String)light;
+    haPublishSensor(sensor, value);
+#endif
+#ifdef HAVE_TEMP_HUMIDITY
+    sensor = "temperature";
+    value = (String)tempair;
+    haPublishSensor(sensor, value);
+    sensor = "humidity";
+    value = (String)humidity;
+    haPublishSensor(sensor, value);
+#endif
+#ifdef HAVE_FLOW
+    sensor = "flow";
+    value = (String)flow;
+    haPublishSensor(sensor, value);
+#endif
+#ifdef HAVE_TEMP_WET
+  sensor = "tempwet";
+  value = (String)tempwet;
+  haPublishSensor(sensor, value);
+#endif
+#ifdef HAVE_CO2
+  sensor = "co2";
+  value = (String)co2;
+  haPublishSensor(sensor, value);
+#endif
+#ifdef HAVE_EC
+  sensor = "ec";
+  value = (String)ec;
+  haPublishSensor(sensor, value);
+#endif
+#ifdef HAVE_PH
+  sensor = "ph";
+  value = (String)ph;
+  haPublishSensor(sensor, value);
+#endif
+#ifdef HAVE_MOISTURE
+  sensor = "moisture";
+  value = (String)moisture;
+  haPublishSensor(sensor, value);
+#endif
+    }
+#endif
+
 
 #ifdef MQTT
 void publishData(int light, float tempair, float humidity, float flow, int co2, float tempwet, float ec, float ph, int moisture) {
@@ -530,7 +647,7 @@ void publishData(int light, float tempair, float humidity, float flow, int co2, 
         "humidity": "43.70"
      }
   */
-  char buffer[256];
+  char buffer[BUFFER_SIZE];
   serializeJson(doc, buffer);
   client.publish(MQTT_SENSOR_TOPIC, buffer, true);
   // yield();
@@ -543,7 +660,7 @@ void reconnect() {
     Serial.println("INFO: Attempting MQTT connection...");
     // Attempt to connect
     client.setKeepAlive(MQTT_KEEPALIVE);
-    if (client.connect(MQTT_CLIENT_ID, MQTT_USER, MQTT_PASSWORD))
+    if (client.connect(MQTT_CLIENT_ID.c_str(), MQTT_USER, MQTT_PASSWORD))
     {
       Serial.println("INFO: connected");
     }
@@ -595,7 +712,9 @@ void setup()
   client.setServer(MQTT_SERVER_IP, MQTT_SERVER_PORT);
   // client.setCallback(callback);
 #endif // MQTT
-
+#ifdef HOMEASSISTANT
+  haRegisterSensors();
+#endif
 #endif // MOCK
 } // end setup
 
@@ -622,22 +741,23 @@ void loop()
 #ifdef INFLUXDB
   postDataToInfluxDB(light, tempair, humidity, flow, co2, tempwet, ec, ph, moisture);
 #endif // INFLUXDB
-
 #ifdef MQTT
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
+#ifdef HOMEASSISTANT
+  haPublishData(light, tempair, humidity, flow, co2, tempwet, ec, ph, moisture);
+#else
   publishData(light, tempair, humidity, flow, co2, tempwet, ec, ph, moisture);
+#endif
   Serial.println("INFO: Closing the MQTT connection");
   client.disconnect();
 #endif // MQTT
-
   //   // If no Wifi signal, try to reconnect it
   //  if ((WiFi.RSSI() == 0) && (wifiMulti.run() != WL_CONNECTED)) {
   //    Serial.println("Wifi connection lost");
   //  }
-
   // Need to shutdown wifi due to bug in Wifi: https://github.com/arduino-libraries/WiFiNINA/issues/103 | https://github.com/arduino-libraries/WiFiNINA/issues/207
   shutdownWifi();
   delay(SAMPLE_WINDOW);
