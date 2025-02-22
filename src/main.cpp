@@ -520,6 +520,8 @@ void haAnnounceSensor(String name, String measurement, JsonDocument& payload, ch
   payload["unit_of_measurement"] = measurement;
   payload["expire_after"] = (String)(SAMPLE_WINDOW * 2);
   serializeJson(payload, buffer, BUFFER_SIZE);
+  String info = "Announcing sensor: " + config_topic + "\n" + buffer;
+  Serial.println(info);
   client.publish(config_topic.c_str(), buffer, true);
   payload.clear();
 }
@@ -556,6 +558,8 @@ void haRegisterSensors() {
 
 void haPublishSensor(String name, String value){
   String topic = haSensorTopic(name, "state");
+  String info = "Publishing sensor: " + topic + " : " + value;
+  Serial.println(info);
   client.publish(topic.c_str(), value.c_str(), true);
 }
 
