@@ -26,7 +26,7 @@ String HA_PREFIX = "homeassistant/sensor";
 #include <ArduinoJson.h>
 // Using char* as might store in PROGMEM later
 #define MQTT_KEEPALIVE 90
-String MQTT_CLIENT_ID = "ew1";
+String MQTT_CLIENT_ID = "ard1";
 char* MQTT_SERVER_IP = "192.168.8.100";
 uint16_t MQTT_SERVER_PORT = 1883;
 char* MQTT_USER = "hamqtt";
@@ -34,19 +34,19 @@ char* MQTT_PASSWORD = "UbT4Rn3oY7!S9L";
 char* MQTT_SENSOR_TOPIC = "farm/ew1";
 #endif
 
-char ssid[] = "FUsensors";
+char ssid[] = "fumanc";
 char pass[] = "FARM123!";
 // char ssid[] = "PLUSNET-CFC9WG";
 // char pass[] = "G7UtKycGmxGYDq";
 
 // #define MOCK ;
 
-#define HAVE_TEMP_HUMIDITY // Always need this
-#define HAVE_FLOW
-#define HAVE_TEMP_WET
+#define HAVE_TEMP_HUMIDITY // Always need this when using influxdb directly
+// #define HAVE_FLOW
+// #define HAVE_TEMP_WET
 // -- Digital Inputs -- //
 #define HAVE_LIGHT
-#define HAVE_CO2
+// #define HAVE_CO2
 // #define HAVE_EC
 // #define HAVE_PH
 // #define HAVE_MOISTURE
@@ -514,7 +514,7 @@ void haAnnounceSensor(String name, String measurement, JsonDocument& payload, ch
   String config_topic = haSensorTopic(name, "config");
   String state_topic = haSensorTopic(name, "state");
   payload["name"] = sensor_name;
-  payload["device_class"] = "";
+  payload["device_class"] = name;
   payload["state_topic"] = state_topic;
   payload["unique_id"] = sensor_name;
   payload["unit_of_measurement"] = measurement;
@@ -530,7 +530,7 @@ void haRegisterSensors() {
   StaticJsonDocument<200> payload;
   char buffer[BUFFER_SIZE];
 #ifdef HAVE_LIGHT
-  haAnnounceSensor(String("light"), String("lux"), payload, buffer);
+  haAnnounceSensor(String("illuminance"), String("lx"), payload, buffer);
 #endif
 #ifdef HAVE_TEMP_HUMIDITY
   haAnnounceSensor(String("temperature"), String("°C"), payload, buffer);
@@ -567,7 +567,7 @@ void haPublishSensor(String name, String value){
     String value = "";
     String sensor = "";
 #ifdef HAVE_LIGHT
-    sensor = "light";
+    sensor = "illuminance";
     value = (String)light;
     haPublishSensor(sensor, value);
 #endif
@@ -717,7 +717,12 @@ void setup()
   // client.setCallback(callback);
 #endif // MQTT
 #ifdef HOMEASSISTANT
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
   haRegisterSensors();
+  client.disconnect();
 #endif
 #endif // MOCK
 } // end setup
