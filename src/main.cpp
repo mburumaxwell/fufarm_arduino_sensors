@@ -514,7 +514,7 @@ void haAnnounceSensor(String name, String measurement, JsonDocument& payload, ch
   String config_topic = haSensorTopic(name, "config");
   String state_topic = haSensorTopic(name, "state");
   payload["name"] = sensor_name;
-  payload["device_class"] = name;
+  payload["device_class"] = name; // https://www.home-assistant.io/integrations/sensor/#device-class
   payload["state_topic"] = state_topic;
   payload["unique_id"] = sensor_name;
   // payload["unit_of_measurement"] = measurement;
