@@ -509,12 +509,12 @@ String haSensorTopic(String name, String type){
   return topic;
 }
 
-void haAnnounceSensor(String name, String measurement, JsonDocument& payload, char buffer[]){
+void haAnnounceSensor(String name, String type, JsonDocument& payload, char buffer[]){
   String sensor_name = haSensorName(name);
   String config_topic = haSensorTopic(name, "config");
   String state_topic = haSensorTopic(name, "state");
   payload["name"] = sensor_name;
-  payload["device_class"] = name; // https://www.home-assistant.io/integrations/sensor/#device-class
+  payload["device_class"] = type; // https://www.home-assistant.io/integrations/sensor/#device-class
   payload["state_topic"] = state_topic;
   payload["unique_id"] = sensor_name;
   // payload["unit_of_measurement"] = measurement;
@@ -530,20 +530,20 @@ void haRegisterSensors() {
   StaticJsonDocument<200> payload;
   char buffer[BUFFER_SIZE];
 #ifdef HAVE_LIGHT
-  haAnnounceSensor(String("illuminance"), String("lx"), payload, buffer);
+  haAnnounceSensor(String("illuminance"), String("illuminance"), payload, buffer);
 #endif
 #ifdef HAVE_TEMP_HUMIDITY
-  haAnnounceSensor(String("temperature"), String("°C"), payload, buffer);
-  haAnnounceSensor(String("humidity"), String("%"), payload, buffer);
+  haAnnounceSensor(String("temperature"), String("temperature"), payload, buffer);
+  haAnnounceSensor(String("humidity"), String("humidity"), payload, buffer);
 #endif
 #ifdef HAVE_FLOW
-  haAnnounceSensor(String("volume_flow_rate"), String("L"), payload, buffer);
+  haAnnounceSensor(String("volume_flow_rate"), String("volume_flow_rate"), payload, buffer);
 #endif
 #ifdef HAVE_TEMP_WET
-  haAnnounceSensor(String("tempwet"), String("°C"), payload, buffer);
+  haAnnounceSensor(String("liquidtemp"), String("temperature"), payload, buffer);
 #endif
 #ifdef HAVE_CO2
-  haAnnounceSensor(String("co2"), String("ppm"), payload, buffer);
+  haAnnounceSensor(String("carbon_dioxide"), String("carbon_dioxide"), payload, buffer);
 #endif
 #ifdef HAVE_EC
   haAnnounceSensor(String("ec"), String("ec"), payload, buffer);
@@ -552,7 +552,7 @@ void haRegisterSensors() {
   haAnnounceSensor(String("ph"), String("ph"), payload, buffer);
 #endif
 #ifdef HAVE_MOISTURE
-  haAnnounceSensor(String("moisture"), String("count"), payload, buffer);
+  haAnnounceSensor(String("moisture"), String("moisture"), payload, buffer);
 #endif
 }
 
@@ -590,7 +590,7 @@ void haPublishSensor(String name, String value){
   haPublishSensor(sensor, value);
 #endif
 #ifdef HAVE_CO2
-  sensor = "co2";
+  sensor = "carbon_dioxide";
   value = (String)co2;
   haPublishSensor(sensor, value);
 #endif
