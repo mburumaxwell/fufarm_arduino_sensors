@@ -517,7 +517,7 @@ void haAnnounceSensor(String name, String measurement, JsonDocument& payload, ch
   payload["device_class"] = name;
   payload["state_topic"] = state_topic;
   payload["unique_id"] = sensor_name;
-  payload["unit_of_measurement"] = measurement;
+  // payload["unit_of_measurement"] = measurement;
   payload["expire_after"] = (String)(SAMPLE_WINDOW * 2);
   serializeJson(payload, buffer, BUFFER_SIZE);
   String info = "Announcing sensor: " + config_topic + "\n" + buffer;
@@ -537,7 +537,7 @@ void haRegisterSensors() {
   haAnnounceSensor(String("humidity"), String("%"), payload, buffer);
 #endif
 #ifdef HAVE_FLOW
-  haAnnounceSensor(String("flow"), String("L"), payload, buffer);
+  haAnnounceSensor(String("volume_flow_rate"), String("L"), payload, buffer);
 #endif
 #ifdef HAVE_TEMP_WET
   haAnnounceSensor(String("tempwet"), String("°C"), payload, buffer);
@@ -580,7 +580,7 @@ void haPublishSensor(String name, String value){
     haPublishSensor(sensor, value);
 #endif
 #ifdef HAVE_FLOW
-    sensor = "flow";
+    sensor = "volume_flow_rate";
     value = (String)flow;
     haPublishSensor(sensor, value);
 #endif
