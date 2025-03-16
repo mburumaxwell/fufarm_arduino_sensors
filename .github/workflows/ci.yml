@@ -1,0 +1,64 @@
+# Reference https://docs.platformio.org/en/stable/integration/ci/github-actions.html
+
+name: Build
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - .vscode/**
+      - README.md
+      - LICENSE
+      - .github/**
+      - '!.github/workflows/ci.yml'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - .vscode/**
+      - README.md
+      - LICENSE
+      - .github/**
+      - '!.github/workflows/ci.yml'
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PlatformIO
+        run: pip install --upgrade platformio
+
+      - name: Build Project
+        run: pio run --environment uno_wifi_rev2
+
+      # To be restored once we have a automated tests
+      # - name: Run Unit Tests
+      #   run: pio test --environment native
+
+      - name: Create drop folder
+        run: |
+          mkdir -p drop
+          cp ${{ github.workspace }}/.pio/build/uno_wifi_rev2/firmware.elf ${{ github.workspace }}/drop/firmware.elf
+          cp ${{ github.workspace }}/.pio/build/uno_wifi_rev2/firmware.hex ${{ github.workspace }}/drop/firmware.hex
+
+      - name: Upload Artifact (drop)
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ github.workspace }}/drop/*
+          name: drop
+          retention-days: 1
