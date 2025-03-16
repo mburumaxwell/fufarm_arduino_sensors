@@ -27,10 +27,10 @@
   // ensure only digital pins configured
   #ifdef ARDUINO
     #if SENSORS_DHT22_PIN < 0 || SENSORS_DHT22_PIN > 13
-      #error "Pin configured for DHT22 must a digital one.")
+      #error "Pin configured for DHT22 must a digital one."
     #endif
   #else // any other board we have not validated
-    #pragma message "⚠️ Unable to validate if pin configured for SEN0217 (flow sensor) allows interrupts required."
+    #pragma message "⚠️ Unable to validate pin configured for DHT22."
   #endif
 #endif
 
@@ -44,7 +44,7 @@
 
   #ifdef ARDUINO_AVR_UNO_WIFI_REV2
     #if SENSORS_SEN0217_PIN < 0 || SENSORS_SEN0217_PIN > 13
-      #error "Pin configured for SEN0217 (flow sensor) must support interrupts.")
+      #error "Pin configured for SEN0217 (flow sensor) must support interrupts."
     #endif
   #else // any other board we have not validated
     #pragma message "⚠️ Unable to validate if pin configured for SEN0217 (flow sensor) allows interrupts required."
@@ -65,7 +65,7 @@
 
 // Validation of the build configuration
 #if !defined(HAVE_TEMP_HUMIDITY) && (USE_INFLUXDB == 1)
-  #error "Temperature and Humidity sensor must be setup when using influxdb directly
+  #error "Temperature and Humidity sensor must be setup when using InfluxDB directly
 #endif
 
 #ifndef HAVE_TEMP_WET
