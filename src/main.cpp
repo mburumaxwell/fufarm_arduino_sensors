@@ -197,7 +197,7 @@ float getTempWet()
 
 float getFlow()
 /* From YF-S201 manual:
-   Pluse Characteristic:F=7Q(L/MIN).
+   Pulse Characteristic:F=7Q(L/MIN).
    2L/MIN=16HZ 4L/MIN=32.5HZ 6L/MIN=49.3HZ 8L/MIN=65.5HZ 10L/MIN=82HZ
    sample_window is in milli seconds, so hz is pulseCount * 1000 / SAMPLE_WINDOW
  */
