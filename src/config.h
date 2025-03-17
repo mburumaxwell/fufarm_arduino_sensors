@@ -90,7 +90,7 @@
   #error "Temperature and Humidity sensor must be setup when using InfluxDB directly
 #endif
 
-#ifndef HAVE_TEMP_WET
+#if !defined(HAVE_TEMP_WET) && (defined(HAVE_EC) || defined(HAVE_PH))
   #pragma message "⚠️ Without DS18S20 (wet temperature), calibration or EC and PH sensors is done using air temperature which may not be as accurate!"
 #endif
 

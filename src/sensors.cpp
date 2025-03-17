@@ -55,25 +55,38 @@ void FuFarmSensors::calibration(unsigned long readIntervalMs)
   float temperature = readTempWet();
 #endif
 
-  static float voltageEC, ecValue;
-  static float voltagePH, phValue;
   static unsigned long timepoint = millis();
+#ifdef HAVE_EC
+  static float voltageEC, ecValue;
+#endif
+#ifdef HAVE_PH
+  static float voltagePH, phValue;
+#endif
   if (millis() - timepoint > readIntervalMs)
   {
     timepoint = millis();
 
+#ifdef HAVE_EC
     voltageEC = ANALOG_READ_MILLI_VOLTS(SENSORS_EC_PIN);
     ecValue = ecProbe.readEC(voltageEC, temperature);
+#endif
 
+#ifdef HAVE_PH
     voltagePH = ANALOG_READ_MILLI_VOLTS(SENSORS_PH_PIN);
     phValue = phProbe.readPH(voltagePH, temperature);
+#endif
 
     Serial.print(F("Temperature: "));
     Serial.print(temperature, 1);
+#ifdef HAVE_EC
     Serial.print(F("^C  EC: "));
     Serial.print(ecValue, 2);
+#endif
+#ifdef HAVE_PH
     Serial.print(F(" pH: "));
-    Serial.println(phValue, 2);
+    Serial.print(phValue, 2);
+#endif
+    Serial.println();
   }
 
   // Check if we have received a command via Serial
@@ -98,14 +111,18 @@ void FuFarmSensors::calibration(unsigned long readIntervalMs)
       Serial.println(F(">>>EEPROM cleared!<<<"));
       Serial.println();
     }
-    else if (strstr(buffer, "ENTEREC") || strstr(buffer, "CALEC") || strstr(buffer, "EXITEC")) 
+#ifdef HAVE_EC
+    else if (strstr(buffer, "ENTEREC") || strstr(buffer, "CALEC") || strstr(buffer, "EXITEC"))
     {
       ecProbe.calibration(voltageEC, temperature, buffer); // calibration process by Serial CMD
     }
+#endif
+#ifdef HAVE_PH
     else if (strstr(buffer, "ENTERPH") || strstr(buffer, "CALPH") || strstr(buffer, "EXITPH"))
     {
       phProbe.calibration(voltagePH, temperature, buffer); // calibration process by Serial CMD
     }
+#endif
 
     // clear buffer
     bufferIndex = 0;
