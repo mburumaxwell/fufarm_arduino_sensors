@@ -60,6 +60,19 @@
   #endif
 #endif
 
+#ifdef CALIBRATION_TOGGLE_PIN
+  #define SUPPORTS_CALIBRATION
+
+  // ensure only digital pins configured
+  #ifdef ARDUINO
+    #if CALIBRATION_TOGGLE_PIN < 0 || CALIBRATION_TOGGLE_PIN > 13
+      #error "Pin configured for calibration toggle must a digital one.")
+    #endif
+  #else // any other board we have not validated
+    #pragma message "⚠️ Unable to validate pin configured for calibration."
+  #endif
+#endif
+
 #ifdef SENSORS_DS18S20_PIN
   #define HAVE_TEMP_WET
 #endif
