@@ -405,7 +405,9 @@ void haPublishSensor(String name, String value){
   String topic = haSensorTopic(name, "state");
   String info = "Publishing sensor: " + topic + " : " + value;
   Serial.println(info);
+#ifndef MOCK
   client.publish(topic.c_str(), value.c_str(), true);
+#endif // MOCK
 }
 
   void haPublishData(FuFarmSensorsData *data) {
@@ -490,7 +492,7 @@ void setup()
 
   sensors.begin();
 
-#ifdef MOCK
+#ifndef MOCK
   // check for the WiFi module:
   if (WiFi.status() == WL_NO_MODULE)
   {
@@ -532,13 +534,17 @@ void loop()
 #endif // USE_INFLUXDB
 
 #if USE_HOME_ASSISTANT
+#ifndef MOCK
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
+#endif // MOCK
   haPublishData(&sensorsData);
+#ifndef MOCK
   Serial.println("INFO: Closing the MQTT connection");
   client.disconnect();
+#endif // MOCK
 #endif // USE_HOME_ASSISTANT
   //   // If no Wifi signal, try to reconnect it
   //  if ((WiFi.RSSI() == 0) && (wifiMulti.run() != WL_CONNECTED)) {
