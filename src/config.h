@@ -1,6 +1,15 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// #define MOCK ; // Uncomment to skip wifi connection for testing sensors
+
+#ifdef MOCK
+#define SAMPLE_WINDOW 5000
+#else
+// Time in milliseconds - 5 minutes = 1000 * 60 * 5 = 300000
+#define SAMPLE_WINDOW 60000
+#endif
+
 #ifdef SENSORS_LIGHT_PIN
   #define HAVE_LIGHT
 #endif
