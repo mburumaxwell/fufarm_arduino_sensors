@@ -52,6 +52,7 @@ char pass[] = "FARM123!";
 extern void sen0217InterruptHandler(); // defined later in the file
 FuFarmSensors sensors(sen0217InterruptHandler);
 FuFarmSensorsData sensorsData;
+static boolean calibrationMode = false;
 
 // Wifi control
 int wifiStatus = WL_IDLE_STATUS; // the Wifi radio's status
@@ -483,7 +484,7 @@ void reconnect() {
 
 void setup()
 {
-  //    pinMode(LED_BUILTIN, OUTPUT);
+  // pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);
 
   // https://www.arduino.cc/reference/en/language/functions/analog-io/analogreference/
@@ -491,6 +492,26 @@ void setup()
   analogReference(VDD); // VDD: Vdd of the ATmega4809. 5V on the Uno WiFi Rev2
 
   sensors.begin();
+
+  // if calibration toggle is shorted then we are in calibration mode
+  #ifdef SUPPORTS_CALIBRATION
+  pinMode(CALIBRATION_TOGGLE_PIN, INPUT_PULLUP);
+  calibrationMode = digitalRead(CALIBRATION_TOGGLE_PIN) == 0;
+  if (calibrationMode) {
+    Serial.println(F("Calibration toggle has been shorted hence enter calibration mode. To exit, remove the short and reset."));
+    Serial.println(F("EC and PH sensors take calibration commands via Serial Monitor/Terminal."));
+    Serial.println(F("Available commands for PH sensor:"));
+    Serial.println(F("enterph -> enter the calibration mode for PH"));
+    Serial.println(F("calph   -> calibrate with the standard buffer solution, two buffer solutions(4.0 and 7.0) will be automatically recognized"));
+    Serial.println(F("exitph  -> save the calibrated parameters and exit from calibration mode"));
+    Serial.println(F("Available commands for EC sensor:"));
+    Serial.println(F("enterec -> enter the calibration mode"));
+    Serial.println(F("calec   -> calibrate with the standard buffer solution, two buffer solutions(1413us/cm and 12.88ms/cm) will be automatically recognized"));
+    Serial.println(F("exitec  -> save the calibrated parameters and exit from calibration mode"));
+  } else {
+    Serial.println(F("Assuming sensors have been calibrated. To enter calibration mode, short the calibration toggle and reset."));
+  }
+#endif
 
 #ifndef MOCK
   // check for the WiFi module:
@@ -523,6 +544,11 @@ void setup()
 
 void loop()
 {
+  if (calibrationMode) {
+    sensors.calibration();
+    return; // nothing else can happen when in calibration mode
+  }
+
   // Serial.println("Starting main loop");
   // digitalWrite(LED_BUILTIN, HIGH);
   connectToWifi();

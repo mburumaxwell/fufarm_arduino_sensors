@@ -1,11 +1,14 @@
-#include "sensors.h"
 #include <Arduino.h>
+#include <EEPROM.h>
+#include "sensors.h"
 
 // Will be different depending on the reference voltage
 #define ANALOG_REFERENCE_MILLI_VOLTS 5000
 #define ANALOG_MAX_VALUE 1024 // 10 bit ADC
 // to avoid possible loss of precision, multiply before dividing
 #define ANALOG_READ_MILLI_VOLTS(pin) ((analogRead(pin) * ANALOG_REFERENCE_MILLI_VOLTS) / ANALOG_MAX_VALUE)
+
+#define KVALUEADDR 0x00
 
 FuFarmSensors::FuFarmSensors(void (*sen0217InterruptHandler)() = nullptr)
 {
@@ -40,11 +43,89 @@ void FuFarmSensors::begin()
 #endif
 }
 
-void FuFarmSensors::calibration()
+void FuFarmSensors::calibration(unsigned long readIntervalMs)
 {
-  // TODO: implement calibration (maybe based on a button?)
-  // phProbe.calibration(...);
-  // ecProbe.calibration(...);
+  // References:
+  // - https://wiki.dfrobot.com/Gravity__Analog_pH_Sensor_Meter_Kit_V2_SKU_SEN0161-V2
+  // - https://wiki.dfrobot.com/Gravity__Analog_Electrical_Conductivity_Sensor___Meter_V2__K%3D1__SKU_DFR0300
+
+  static float temperature = 25; // assumed room temperature (used when there is no wet temp sensor)
+  static unsigned long timepoint = millis();
+#ifdef HAVE_EC
+  static float voltageEC, ecValue;
+#endif
+#ifdef HAVE_PH
+  static float voltagePH, phValue;
+#endif
+  if (millis() - timepoint > readIntervalMs)
+  {
+    timepoint = millis();
+#ifndef HAVE_TEMP_WET
+    temperature = readTempWet();
+#endif
+
+#ifdef HAVE_EC
+    voltageEC = ANALOG_READ_MILLI_VOLTS(SENSORS_EC_PIN);
+    ecValue = ecProbe.readEC(voltageEC, temperature);
+#endif
+
+#ifdef HAVE_PH
+    voltagePH = ANALOG_READ_MILLI_VOLTS(SENSORS_PH_PIN);
+    phValue = phProbe.readPH(voltagePH, temperature);
+#endif
+
+    Serial.print(F("Temperature: "));
+    Serial.print(temperature, 1);
+#ifdef HAVE_EC
+    Serial.print(F("^C  EC: "));
+    Serial.print(ecValue, 2);
+#endif
+#ifdef HAVE_PH
+    Serial.print(F(" pH: "));
+    Serial.print(phValue, 2);
+#endif
+    Serial.println();
+  }
+
+  // Check if we have received a command via Serial
+  // This logic is adapted to support all sensors and EEPROM without logging errors
+  if (cmdSerialDataAvailable() > 0)
+  {
+    // if received Serial CMD from the serial monitor, enter into the respective calibration mode
+    // EEPROM: clear
+    // EC: enterec, calec, exitec
+    // pH: enterph, calph, exitph
+
+    if (strstr(buffer, "CLEAR"))
+    {
+      Serial.println();
+      Serial.println(F(">>>Clearing EEPROM<<<"));
+
+      for (uint8_t i = 0; i < 8; i++)
+      {
+        EEPROM.write(KVALUEADDR + i, 0xFF);
+      }
+
+      Serial.println(F(">>>EEPROM cleared!<<<"));
+      Serial.println();
+    }
+#ifdef HAVE_EC
+    else if (strstr(buffer, "ENTEREC") || strstr(buffer, "CALEC") || strstr(buffer, "EXITEC"))
+    {
+      ecProbe.calibration(voltageEC, temperature, buffer); // calibration process by Serial CMD
+    }
+#endif
+#ifdef HAVE_PH
+    else if (strstr(buffer, "ENTERPH") || strstr(buffer, "CALPH") || strstr(buffer, "EXITPH"))
+    {
+      phProbe.calibration(voltagePH, temperature, buffer); // calibration process by Serial CMD
+    }
+#endif
+
+    // clear buffer
+    bufferIndex = 0;
+    memset(buffer, 0, (sizeof(buffer)));
+  }
 }
 
 void FuFarmSensors::read(FuFarmSensorsData *dest)
@@ -210,4 +291,28 @@ float FuFarmSensors::readTempWet()
 #else
   return -1;
 #endif
+}
+
+// inspired by
+// - .pio/libdeps/leonardo/DFRobot_EC/DFRobot_EC.cpp
+// - .pio/libdeps/leonardo/DFRobot_PH/DFRobot_PH.cpp
+bool FuFarmSensors::cmdSerialDataAvailable()
+{
+  char received;
+  while (Serial.available() > 0)
+  {
+    received = Serial.read();
+    if (received == '\n' || received == '\r' || bufferIndex == sizeof(buffer) - 1)
+    {
+      bufferIndex = 0;
+      strupr(buffer);
+      return true;
+    }
+    else
+    {
+      buffer[bufferIndex] = received;
+      bufferIndex++;
+    }
+  }
+  return false;
 }

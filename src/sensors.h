@@ -24,10 +24,10 @@ class FuFarmSensors
 public:
   FuFarmSensors(void (*sen0217InterruptHandler)() = nullptr);
   ~FuFarmSensors();
-  void begin();                       // initialization
-  void calibration();                 // calibration
-  void read(FuFarmSensorsData* dest); // read all sensor data
-  void sen0217Interrupt();            // should be called from the interrupt handler for SEN0217 passed in the constructor
+  void begin();                                           // initialization
+  void calibration(unsigned long readIntervalMs = 1000U); // calibration, should be called in a loop, ideally a config mode
+  void read(FuFarmSensorsData* dest);                     // read all sensor data
+  void sen0217Interrupt();                                // should be called from the interrupt handler passed in the constructor
 
 private:
 #ifdef HAVE_TEMP_HUMIDITY
@@ -59,4 +59,9 @@ private:
   float readFlow();
   int readMoisture();
   float readTempWet();
+
+private:
+  char buffer[10];
+  uint8_t bufferIndex;
+  bool cmdSerialDataAvailable();
 };
