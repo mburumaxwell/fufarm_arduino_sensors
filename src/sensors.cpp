@@ -75,7 +75,9 @@ void FuFarmSensors::read(FuFarmSensorsData *dest)
 
 void FuFarmSensors::sen0217Interrupt()
 {
+#ifdef HAVE_FLOW
   pulseCount += 1;
+#endif
 }
 
 int FuFarmSensors::readLight()
