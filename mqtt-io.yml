@@ -1,0 +1,96 @@
+logging:
+  version: 1
+  loggers:
+    mqtt_io:
+      level: 'WARN'
+      handlers: ['console']
+      propagate: True
+  handlers:
+    console:
+      class: 'logging.StreamHandler'
+      formatter: 'default'
+      level: 'INFO'
+  formatters:
+    default:
+      format: '%(asctime)s %(name)s [%(levelname)s] %(message)s'
+      datefmt': '%Y-%m-%d %H:%M:%S'
+
+
+mqtt:
+  host: localhost
+  port: 1883
+  user: hamqtt
+  password: "<your-password>" # replace with own password
+  topic_prefix: sensors
+  ha_discovery:
+    enabled: yes
+
+stream_modules:
+  - name: rpiarduino
+    module: serial
+    device: /dev/ttyACM0
+    baud: 9600
+    read_interval: 5
+
+#sensor_modules:
+#  - name: pina0
+#    module: dfr0566_analog
+#    i2c_bus_num: 1
+#    chip_addr: 0x10
+#
+#  - name: dfr_ens160
+#    module: dfr_ens160
+#    i2c_bus_num: 1
+#    chip_addr: 0x53
+#
+#  - name: aht20
+#    module: aht20
+#
+#  - name: yfs201
+#    module: yfs201
+#    pin: 0
+#
+#sensor_inputs:
+#  - name: temperature1
+#    module: aht20
+#    type: temperature
+#    interval: 10
+#
+#  - name: humidity1
+#    module: aht20
+#    type: humidity
+#    interval: 10
+#
+#  - name: light1
+#    module: pina0
+#    pin: 0
+#    digits: 0
+#    interval: 10
+#
+#  - name: flow1
+#    module: yfs201
+#    interval: 10
+#
+#  - name: moisture1
+#    module: pina0
+#    pin: 1
+#    digits: 0
+#    interval: 10
+#
+#  - name: air_quality
+#    module: dfr_ens160
+#    type: aqi
+#    digits: 0
+#    interval: 10
+#
+#  - name: volatile_organic_compounds
+#    module: dfr_ens160
+#    digits: 0
+#    type: tvoc
+#    interval: 10
+#
+#  - name: co2
+#    module: dfr_ens160
+#    digits: 0
+#    type: co2
+#    interval: 10

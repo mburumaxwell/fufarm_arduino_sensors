@@ -2,7 +2,18 @@
 
 Code for Arduino Sensors
 
-This code is built for the [Arduino UNO Wifi R2](https://store.arduino.cc/products/arduino-uno-wifi-rev2). Other boards might be added with time, if need be. However, should you need to test on another board, [supported by PlatformIO](https://docs.platformio.org/en/latest/boards/index.html), the easiest way would be to add a new environment in the [platformio.ini](./platformio.ini) file. The current code base is built to work with Arduino which means choosing boards [supported by the Arduino platform](https://docs.platformio.org/en/latest/frameworks/arduino.html#boards) is easier.
+This code is built for the [Arduino UNO Wifi R2](https://store.arduino.cc/products/arduino-uno-wifi-rev2) and the [Arduino Leonardo](https://store.arduino.cc/products/arduino-leonardo-with-headers). Other boards might be added with time, if need be. However, should you need to test on another board, [supported by PlatformIO](https://docs.platformio.org/en/latest/boards/index.html), the easiest way would be to add a new environment in the [platformio.ini](./platformio.ini) file. The current code base is built to work with Arduino which means choosing boards [supported by the Arduino platform](https://docs.platformio.org/en/latest/frameworks/arduino.html#boards) is easier.
+
+You can comment/uncomment, one of the lines under `platformio` in the configuration file to target just one which is easier/faster for local use. Otherwise the commands you need are
+
+|Name/Action|Command Format|Example|
+|--|--|--|
+|Build (default environments)||`pio run`|
+|Build (specific environment)|`pio run --environment {env-name}`|`pio run --environment uno_wifi_rev2`|
+|Upload (specific environment)|`pio run --environment {env-name} --target upload`|`pio run --environment uno_wifi_rev2 --target upload`|
+|Test||`pio test --environment native`|
+|Clean (default environments)n||`pio run --target fullclean`|
+|Clean (specific environment)|`pio run --environment {env-name} --target fullclean`|`pio run --environment leonardo --target fullclean`|
 
 ## Sensors
 

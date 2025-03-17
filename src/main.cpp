@@ -1,3 +1,5 @@
+#include "config.h"
+
 /*
  * Need to update the firmware on the Wifi Uno Rev2 and upload the SSL certificate for INFLUXDB_SERVER
  * Getting this to work required multiple attempts and deleting the arduino.cc certificate. Instructions
@@ -5,8 +7,14 @@
  *
  * */
 #include <SPI.h>
+#if HAVE_WIFI
 // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/wifi.html#wi-fi-reason-code
 #include <WiFiNINA.h>
+#endif
+
+#if defined(ARDUINO_AVR_LEONARDO) || defined(USE_HOME_ASSISTANT)
+#include <ArduinoJson.h>
+#endif
 
 #include "sensors.h"
 
@@ -15,7 +23,6 @@
 #if USE_HOME_ASSISTANT
 String HA_PREFIX = "homeassistant/sensor";
 #include <PubSubClient.h>
-#include <ArduinoJson.h>
 // Using char* as might store in PROGMEM later
 #define MQTT_KEEPALIVE 90
 String MQTT_CLIENT_ID = "ard1";
@@ -24,11 +31,6 @@ uint16_t MQTT_SERVER_PORT = 1883;
 char* MQTT_USER = "hamqtt";
 char* MQTT_PASSWORD = "UbT4Rn3oY7!S9L";
 #endif // USE_HOME_ASSISTANT
-
-char ssid[] = "fumanc";
-char pass[] = "FARM123!";
-// char ssid[] = "PLUSNET-CFC9WG";
-// char pass[] = "G7UtKycGmxGYDq";
 
 #if USE_INFLUXDB
 // InfluxDB v2 server url, e.g. https://eu-central-1-1.aws.cloud2.influxdata.com (Use: InfluxDB UI -> Load Data -> Client Libraries)
@@ -55,15 +57,21 @@ FuFarmSensorsData sensorsData;
 static boolean calibrationMode = false;
 
 // Wifi control
+#if HAVE_WIFI
+char ssid[] = "fumanc";
+char pass[] = "FARM123!";
+// char ssid[] = "PLUSNET-CFC9WG";
+// char pass[] = "G7UtKycGmxGYDq";
 int wifiStatus = WL_IDLE_STATUS; // the Wifi radio's status
 WiFiClient wifiClient;
+#else
+StaticJsonDocument<200> doc;
+#endif
+
 
 #if USE_HOME_ASSISTANT
 PubSubClient client(wifiClient);
 #endif // USE_HOME_ASSISTANT
-
-// Will be different depending on the reference voltage
-#define VOLTAGE_CONVERSION 5000;
 
 #ifdef HAVE_FLOW
 void sen0217InterruptHandler() // this exists because there is no way to pass an instance method to the interrupt
@@ -72,6 +80,7 @@ void sen0217InterruptHandler() // this exists because there is no way to pass an
 }
 #endif
 
+#if HAVE_WIFI
 void printMacAddress(byte mac[])
 {
   for (int i = 5; i >= 0; i--)
@@ -204,6 +213,7 @@ void shutdownWifi()
   WiFi.disconnect();
   WiFi.end();
 }
+#endif
 
 #if USE_INFLUXDB
 // From: https://github.com/tobiasschuerg/InfluxDB-Client-for-Arduino/blob/master/src/util/helpers.cpp
@@ -488,8 +498,13 @@ void setup()
   Serial.begin(9600);
 
   // https://www.arduino.cc/reference/en/language/functions/analog-io/analogreference/
-  // analogReference(DEFAULT); // Set the default voltage of the reference voltage
+#if defined(ARDUINO_AVR_LEONARDO)
+  analogReference(DEFAULT); // Set the default voltage of the reference voltage
+#elif defined(ARDUINO_AVR_UNO_WIFI_REV2)
   analogReference(VDD); // VDD: Vdd of the ATmega4809. 5V on the Uno WiFi Rev2
+#else // any other board we have not validated
+  #pragma message "⚠️ Unable to set analogue reference voltage. Board unknown"
+#endif
 
   sensors.begin();
 
@@ -514,6 +529,7 @@ void setup()
 #endif
 
 #ifndef MOCK
+#if HAVE_WIFI
   // check for the WiFi module:
   if (WiFi.status() == WL_NO_MODULE)
   {
@@ -527,6 +543,7 @@ void setup()
     Serial.println("Please upgrade the firmware");
   }
   connectToWifi();
+#endif
 
 #if USE_HOME_ASSISTANT
     // init the MQTT connection
@@ -551,7 +568,10 @@ void loop()
 
   // Serial.println("Starting main loop");
   // digitalWrite(LED_BUILTIN, HIGH);
+
+#if HAVE_WIFI
   connectToWifi();
+#endif
 
   sensors.read(&sensorsData);
 
@@ -572,11 +592,30 @@ void loop()
   client.disconnect();
 #endif // MOCK
 #endif // USE_HOME_ASSISTANT
+
+
+#if HAVE_WIFI
   //   // If no Wifi signal, try to reconnect it
   //  if ((WiFi.RSSI() == 0) && (wifiMulti.run() != WL_CONNECTED)) {
   //    Serial.println("Wifi connection lost");
   //  }
   // Need to shutdown wifi due to bug in Wifi: https://github.com/arduino-libraries/WiFiNINA/issues/103 | https://github.com/arduino-libraries/WiFiNINA/issues/207
   shutdownWifi();
+#else
+  // populate json
+  doc["tempair"] = sensorsData.temperature.air;
+  doc["humidity"] = sensorsData.humidity;
+  doc["tempwet"] = sensorsData.temperature.wet;
+  doc["co2"] = sensorsData.co2;
+  doc["ec"] = sensorsData.ec; // For unfathomable reasons influxdb won't accept ec as a name so we use cond. WTF?!?!?!@@
+  doc["ph"] = sensorsData.ph;
+  doc["flow"] = sensorsData.flow;
+  doc["light"] = sensorsData.light;
+  doc["moisture"] = sensorsData.moisture;
+
+  serializeJson(doc, Serial);
+  Serial.println();
+  Serial.flush();
+#endif
   delay(SAMPLE_WINDOW);
 } // end loop

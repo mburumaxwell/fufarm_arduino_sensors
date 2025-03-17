@@ -10,7 +10,7 @@
 
 #define KVALUEADDR 0x00
 
-FuFarmSensors::FuFarmSensors(void (*sen0217InterruptHandler)() = nullptr)
+FuFarmSensors::FuFarmSensors(void (*sen0217InterruptHandler)())
 {
 }
 
@@ -271,6 +271,10 @@ float FuFarmSensors::readTempWet()
   ds.write(0x44, 1); // start conversion, with parasite power on at the end
 
   byte present = ds.reset();
+  if (!present)
+  {
+    // TODO: decide if we should return invalid
+  }
   ds.select(addr);
   ds.write(0xBE); // Read Scratchpad
 

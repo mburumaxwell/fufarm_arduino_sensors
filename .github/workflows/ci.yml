@@ -43,22 +43,24 @@ jobs:
       - name: Install PlatformIO
         run: pip install --upgrade platformio
 
-      - name: Build Project
-        run: pio run --environment uno_wifi_rev2
+      - name: Build Project (default environments)
+        run: pio run
 
       # To be restored once we have a automated tests
       # - name: Run Unit Tests
       #   run: pio test --environment native
 
-      - name: Create drop folder
+      - name: Create firmware folder
         run: |
-          mkdir -p drop
-          cp ${{ github.workspace }}/.pio/build/uno_wifi_rev2/firmware.elf ${{ github.workspace }}/drop/firmware.elf
-          cp ${{ github.workspace }}/.pio/build/uno_wifi_rev2/firmware.hex ${{ github.workspace }}/drop/firmware.hex
+          mkdir -p firmware
+          cp ${{ github.workspace }}/.pio/build/leonardo/firmware.elf ${{ github.workspace }}/firmware/leonardo.elf
+          cp ${{ github.workspace }}/.pio/build/leonardo/firmware.hex ${{ github.workspace }}/firmware/leonardo.hex
+          cp ${{ github.workspace }}/.pio/build/uno_wifi_rev2/firmware.elf ${{ github.workspace }}/firmware/uno_wifi_rev2.elf
+          cp ${{ github.workspace }}/.pio/build/uno_wifi_rev2/firmware.hex ${{ github.workspace }}/firmware/uno_wifi_rev2.hex
 
-      - name: Upload Artifact (drop)
+      - name: Upload Artifact (firmware)
         uses: actions/upload-artifact@v4
         with:
-          path: ${{ github.workspace }}/drop/*
-          name: drop
+          path: ${{ github.workspace }}/firmware/*
+          name: firmware
           retention-days: 1
