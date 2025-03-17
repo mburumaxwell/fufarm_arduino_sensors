@@ -1,6 +1,6 @@
 /*
  * Need to update the firmware on the Wifi Uno Rev2 and upload the SSL certificate for INFLUXDB_SERVER
- * Getting this to work required multipole attempts and deleting the arduino.cc certificate. Instructions
+ * Getting this to work required multiple attempts and deleting the arduino.cc certificate. Instructions
  * are available at: https://github.com/xcape-io/ArduinoProps/blob/master/help/WifiNinaFirmware.md
  *
  * */
@@ -9,15 +9,16 @@
 #include <WiFiNINA.h>
 
 // Sensors
-#include "DHTesp.h"
+#include <DFRobot_EC.h>
+#include <DFRobot_PH.h>
+#include <DHTesp.h>
 #include <OneWire.h>
-#include "DFRobot_EC.h"
-#include "DFRobot_PH.h"
+
+#include "config.h"
 
 #define BUFFER_SIZE 256
 
-# define HOMEASSISTANT
-#ifdef HOMEASSISTANT
+#if USE_HOME_ASSISTANT
 String HA_PREFIX = "homeassistant/sensor";
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
@@ -28,7 +29,7 @@ char* MQTT_SERVER_IP = "192.168.8.100";
 uint16_t MQTT_SERVER_PORT = 1883;
 char* MQTT_USER = "hamqtt";
 char* MQTT_PASSWORD = "UbT4Rn3oY7!S9L";
-#endif
+#endif // USE_HOME_ASSISTANT
 
 char ssid[] = "fumanc";
 char pass[] = "FARM123!";
@@ -37,18 +38,7 @@ char pass[] = "FARM123!";
 
 // #define MOCK ; // Uncomment to skip wifi connection for testing sensors
 
-#define HAVE_TEMP_HUMIDITY // Always need this when using influxdb directly
-// #define HAVE_FLOW
-// #define HAVE_TEMP_WET
-// -- Digital Inputs -- //
-#define HAVE_LIGHT
-// #define HAVE_CO2
-// #define HAVE_EC
-// #define HAVE_PH
-// #define HAVE_MOISTURE
-
-// #define INFLUXDB
-#ifdef INFLUXDB
+#if USE_INFLUXDB
 // InfluxDB v2 server url, e.g. https://eu-central-1-1.aws.cloud2.influxdata.com (Use: InfluxDB UI -> Load Data -> Client Libraries)
 #define INFLUXDB_SSL // Uncomment to connect via SSL on port 443
 // #define INFLUXDB_PORT 8086
@@ -75,42 +65,52 @@ char pass[] = "FARM123!";
 #define SAMPLE_WINDOW 60000
 #endif
 
-// Analog Inputs
-int lightPin = A0; // HAVE_LIGHT
-int co2Pin = A1; // HAVE_CO2
-int ecPin = A2; // HAVE_EC
-int phPin = A3; // HAVE_PH
-int moisturePin = A4; // HAVE_MOISTURE
-
-// Digital Inputs
-// Always need HAVE_TEMP_HUMIDITY or else need to edit the line protocol to not get errors
-int dhtPin = 2; // HAVE_TEMP_HUMIDITY
-// Flow sensor - only certain pins https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/
-int SEN0217_Pin = 3; // HAVE_FLOW
-int DS18S20_Pin = 4; // Wet temperature
-
-// Data collecting structures
+#ifdef HAVE_TEMP_HUMIDITY
 DHTesp dht;              // Temperature and Humidity
-OneWire ds(DS18S20_Pin); // Wet temperature chip i/o
+#endif
+
+#ifdef HAVE_TEMP_WET
+OneWire ds(SENSORS_DS18S20_PIN); // Wet temperature chip i/o
+#endif
+
+#ifdef HAVE_EC
 DFRobot_EC ecProbe;      // EC probe
+#endif
+
+#ifdef HAVE_PH
 DFRobot_PH phProbe;      // pH probe
+#endif
+
+#ifdef HAVE_FLOW
 volatile int pulseCount; // Flow Sensor
+#endif
 
 // Wifi control
 int wifiStatus = WL_IDLE_STATUS; // the Wifi radio's status
 WiFiClient wifiClient;
 
-#ifdef HOMEASSISTANT
+#if USE_HOME_ASSISTANT
 PubSubClient client(wifiClient);
-#endif // MQTT
+#endif // USE_HOME_ASSISTANT
 
 // Will be different depending on the reference voltage
 #define VOLTAGE_CONVERSION 5000;
 
-int getCO2(int analogPin)
+int getLight(int pin)
 {
+#ifdef HAVE_LIGHT
+  float voltage = analogRead(pin) / 1024.0 * VOLTAGE_CONVERSION;
+  return (int)(voltage / 10.0);
+#else
+  return -1;
+#endif
+}
+
+int getCO2(int pin)
+{
+#ifdef HAVE_CO2
   // Calculate CO2 concentration in ppm
-  float voltage = analogRead(analogPin) / 1024.0 * VOLTAGE_CONVERSION;
+  float voltage = analogRead(pin) / 1024.0 * VOLTAGE_CONVERSION;
   if (voltage == 0.0)
   {
     // Error
@@ -126,28 +126,34 @@ int getCO2(int analogPin)
     float voltage_difference = voltage - 400.0;
     return (int)(voltage_difference * 50.0 / 16.0);
   }
+#else
+  return -1;
+#endif
 }
 
-int getLight(int lightPin)
+float getEC(int pin, float temperature)
 {
-  float voltage = analogRead(lightPin) / 1024.0 * VOLTAGE_CONVERSION;
-  return (int)(voltage / 10.0);
-}
-
-float getEC(int ecPin, float temperature)
-{
-  float voltage = analogRead(ecPin) / 1024.0 * VOLTAGE_CONVERSION;
+#ifdef HAVE_EC
+  float voltage = analogRead(pin) / 1024.0 * VOLTAGE_CONVERSION;
   return ecProbe.readEC(voltage, temperature);
+#else
+  return -1;
+#endif
 }
 
-float getPH(int phPin, float temperature)
+float getPH(int pin, float temperature)
 {
-  float voltage = analogRead(phPin) / 1024.0 * VOLTAGE_CONVERSION;
+#ifdef HAVE_PH
+  float voltage = analogRead(pin) / 1024.0 * VOLTAGE_CONVERSION;
   return phProbe.readPH(voltage, temperature);
+#else
+  return -1;
+#endif
 }
 
 float getTempWet()
 {
+#ifdef HAVE_TEMP_WET
   // returns the temperature from one DS18S20 in DEG Celsius
   byte data[12];
   byte addr[8];
@@ -193,6 +199,9 @@ float getTempWet()
   float TemperatureSum = tempRead / 16;
 
   return TemperatureSum;
+#else
+  return -1;
+#endif
 }
 
 float getFlow()
@@ -202,9 +211,13 @@ float getFlow()
    sample_window is in milli seconds, so hz is pulseCount * 1000 / SAMPLE_WINDOW
  */
 {
+#ifdef HAVE_FLOW
   float hertz = (float)(pulseCount * 1000.0) / SAMPLE_WINDOW;
   pulseCount = 0; // reset flow counter
   return hertz / 7.0;
+#else
+  return -1;
+#endif
 }
 
 void flowPulse()
@@ -212,13 +225,17 @@ void flowPulse()
   pulseCount += 1;
 }
 
-int getMoisture(int moisturePin)
+int getMoisture(int pin)
 {
+#ifdef HAVE_MOISTURE
   // Need to calibrate this
   int dry = 587;
   int wet = 84;
-  int reading = analogRead(moisturePin);
+  int reading = analogRead(pin);
   return (int)(100.0 * (dry - reading) / (dry - wet));
+#else
+  return -1;
+#endif
 }
 
 void printMacAddress(byte mac[])
@@ -354,7 +371,7 @@ void shutdownWifi()
   WiFi.end();
 }
 
-#ifdef INFLUXDB
+#if USE_INFLUXDB
 // From: https://github.com/tobiasschuerg/InfluxDB-Client-for-Arduino/blob/master/src/util/helpers.cpp
 static char invalidChars[] = "$&+,/:;=?@ <>#%{}|\\^~[]`";
 static char hex_digit(char c)
@@ -397,7 +414,7 @@ String createLineProtocol(int light, float tempair, float humidity, float flow, 
   lineProtocol += ",station_id=";
   lineProtocol += INFLUXDB_STATION_ID;
   // Fields
-  // Always need HAVE_TEMP_HUMIDITY or else need to edit this section
+  // Temperature and humidity are always configured when using InfluxDB
   lineProtocol += " tempair=";
   lineProtocol += String(tempair, 2);
   lineProtocol += ",humidity=";
@@ -490,9 +507,9 @@ int postDataToInfluxDB(int light, float tempair, float humidity, float flow, int
     return -1;
   }
 }
-#endif // INFLUXDB
+#endif // USE_INFLUXDB
 
-#ifdef HOMEASSISTANT
+#if USE_HOME_ASSISTANT
 String haSensorName(String name){
   String sensor_name = MQTT_CLIENT_ID + "_" + name;
   return sensor_name;
@@ -627,22 +644,30 @@ void reconnect() {
     }
   }
 }
-#endif // HOMEASSISTANT
+#endif // USE_HOME_ASSISTANT
 
 void setup()
 {
   //    pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);
-  dht.setup(dhtPin, DHTesp::DHT22);
+  dht.setup(SENSORS_DHT22_PIN, DHTesp::DHT22);
 
   // https://www.arduino.cc/reference/en/language/functions/analog-io/analogreference/
   // analogReference(DEFAULT); // Set the default voltage of the reference voltage
   analogReference(VDD); // VDD: Vdd of the ATmega4809. 5V on the Uno WiFi Rev2
 
-  attachInterrupt(digitalPinToInterrupt(SEN0217_Pin), flowPulse, RISING);
+#ifdef HAVE_FLOW
+  attachInterrupt(digitalPinToInterrupt(SENSORS_SEN0217_PIN), flowPulse, RISING);
   pulseCount = 0;
+#endif
+
+#ifdef HAVE_EC
   ecProbe.begin();
+#endif
+
+#ifdef HAVE_PH
   phProbe.begin();
+#endif
 
 #ifndef MOCK
   // check for the WiFi module:
@@ -659,7 +684,7 @@ void setup()
   }
   connectToWifi();
 
-#ifdef HOMEASSISTANT
+#if USE_HOME_ASSISTANT
     // init the MQTT connection
   client.setServer(MQTT_SERVER_IP, MQTT_SERVER_PORT);
   // client.setCallback(callback);
@@ -669,7 +694,7 @@ void setup()
   client.loop();
   haRegisterSensors();
   client.disconnect();
-#endif
+#endif // USE_HOME_ASSISTANT
 #endif // MOCK
 } // end setup
 
@@ -679,24 +704,29 @@ void loop()
   // digitalWrite(LED_BUILTIN, HIGH);
   connectToWifi();
 
-  int light = getLight(lightPin);
+  int light = getLight(SENSORS_LIGHT_PIN);
   TempAndHumidity th = dht.getTempAndHumidity();
   float tempair = th.temperature;
   float humidity = th.humidity;
   float flow = getFlow();
-  int co2 = getCO2(co2Pin);
+  int co2 = getCO2(SENSORS_CO2_PIN);
+#ifdef HAVE_TEMP_WET
   float tempwet = getTempWet();
   float calibrationTemperature = tempwet;
   if (tempwet == -1000 || tempwet == -1001 || tempwet == -1002) {
     calibrationTemperature = tempair;
   }
-  float ec = getEC(ecPin, calibrationTemperature);
-  float ph = getPH(phPin, calibrationTemperature);
-  int moisture = getMoisture(moisturePin);
-#ifdef INFLUXDB
+#else
+  float calibrationTemperature = tempair;
+#endif
+  float ec = getEC(SENSORS_EC_PIN, calibrationTemperature);
+  float ph = getPH(SENSORS_PH_PIN, calibrationTemperature);
+  int moisture = getMoisture(SENSORS_MOISTURE_PIN);
+#if USE_INFLUXDB
   postDataToInfluxDB(light, tempair, humidity, flow, co2, tempwet, ec, ph, moisture);
-#endif // INFLUXDB
-#ifdef HOMEASSISTANT
+#endif // USE_INFLUXDB
+
+#if USE_HOME_ASSISTANT
   if (!client.connected()) {
     reconnect();
   }
@@ -704,7 +734,7 @@ void loop()
   haPublishData(light, tempair, humidity, flow, co2, tempwet, ec, ph, moisture);
   Serial.println("INFO: Closing the MQTT connection");
   client.disconnect();
-#endif // MQTT
+#endif // USE_HOME_ASSISTANT
   //   // If no Wifi signal, try to reconnect it
   //  if ((WiFi.RSSI() == 0) && (wifiMulti.run() != WL_CONNECTED)) {
   //    Serial.println("Wifi connection lost");
