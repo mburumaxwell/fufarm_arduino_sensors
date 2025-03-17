@@ -15,7 +15,7 @@ There are a number of sensors used in the farm for different purposes.
 |EC||A2|SENSORS_EC_PIN|HAVE_EC|
 |pH||A3|SENSORS_PH_PIN|HAVE_PH|
 |Moisture||A4|SENSORS_MOISTURE_PIN|HAVE_MOISTURE|
-|DH22|Humidity and Temperature (Air)|2|SENSORS_DHT22_PIN|HAVE_TEMP_HUMIDITY|
+|DHT22|Humidity and Temperature (Air)|2|SENSORS_DHT22_PIN|HAVE_TEMP_HUMIDITY|
 |SEN0217|Flow Sensor|3|SENSORS_SEN0217_PIN|HAVE_FLOW|
 |DS18S20|Temperature (Wet)|4|SENSORS_DS18S20_PIN|HAVE_TEMP_WET|
 

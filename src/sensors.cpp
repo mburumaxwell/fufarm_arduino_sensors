@@ -49,12 +49,7 @@ void FuFarmSensors::calibration(unsigned long readIntervalMs)
   // - https://wiki.dfrobot.com/Gravity__Analog_pH_Sensor_Meter_Kit_V2_SKU_SEN0161-V2
   // - https://wiki.dfrobot.com/Gravity__Analog_Electrical_Conductivity_Sensor___Meter_V2__K%3D1__SKU_DFR0300
 
-#ifndef HAVE_TEMP_WET
-  float temperature = 25; // assumed room temperature
-#else
-  float temperature = readTempWet();
-#endif
-
+  static float temperature = 25; // assumed room temperature (used when there is no wet temp sensor)
   static unsigned long timepoint = millis();
 #ifdef HAVE_EC
   static float voltageEC, ecValue;
@@ -65,6 +60,9 @@ void FuFarmSensors::calibration(unsigned long readIntervalMs)
   if (millis() - timepoint > readIntervalMs)
   {
     timepoint = millis();
+#ifndef HAVE_TEMP_WET
+    temperature = readTempWet();
+#endif
 
 #ifdef HAVE_EC
     voltageEC = ANALOG_READ_MILLI_VOLTS(SENSORS_EC_PIN);
