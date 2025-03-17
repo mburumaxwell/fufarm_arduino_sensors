@@ -8,13 +8,7 @@
 // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/wifi.html#wi-fi-reason-code
 #include <WiFiNINA.h>
 
-// Sensors
-#include <DFRobot_EC.h>
-#include <DFRobot_PH.h>
-#include <DHTesp.h>
-#include <OneWire.h>
-
-#include "config.h"
+#include "sensors.h"
 
 #define BUFFER_SIZE 256
 
@@ -36,8 +30,6 @@ char pass[] = "FARM123!";
 // char ssid[] = "PLUSNET-CFC9WG";
 // char pass[] = "G7UtKycGmxGYDq";
 
-// #define MOCK ; // Uncomment to skip wifi connection for testing sensors
-
 #if USE_INFLUXDB
 // InfluxDB v2 server url, e.g. https://eu-central-1-1.aws.cloud2.influxdata.com (Use: InfluxDB UI -> Load Data -> Client Libraries)
 #define INFLUXDB_SSL // Uncomment to connect via SSL on port 443
@@ -57,33 +49,9 @@ char pass[] = "FARM123!";
 #define INFLUXDB_STATION_ID "sys1"
 #endif
 
-
-#ifdef MOCK
-#define SAMPLE_WINDOW 5000
-#else
-// Time in milliseconds - 5 minutes = 1000 * 60 * 5 = 300000
-#define SAMPLE_WINDOW 60000
-#endif
-
-#ifdef HAVE_TEMP_HUMIDITY
-DHTesp dht;              // Temperature and Humidity
-#endif
-
-#ifdef HAVE_TEMP_WET
-OneWire ds(SENSORS_DS18S20_PIN); // Wet temperature chip i/o
-#endif
-
-#ifdef HAVE_EC
-DFRobot_EC ecProbe;      // EC probe
-#endif
-
-#ifdef HAVE_PH
-DFRobot_PH phProbe;      // pH probe
-#endif
-
-#ifdef HAVE_FLOW
-volatile int pulseCount; // Flow Sensor
-#endif
+extern void sen0217InterruptHandler(); // defined later in the file
+FuFarmSensors sensors(sen0217InterruptHandler);
+FuFarmSensorsData sensorsData;
 
 // Wifi control
 int wifiStatus = WL_IDLE_STATUS; // the Wifi radio's status
@@ -96,147 +64,12 @@ PubSubClient client(wifiClient);
 // Will be different depending on the reference voltage
 #define VOLTAGE_CONVERSION 5000;
 
-int getLight(int pin)
-{
-#ifdef HAVE_LIGHT
-  float voltage = analogRead(pin) / 1024.0 * VOLTAGE_CONVERSION;
-  return (int)(voltage / 10.0);
-#else
-  return -1;
-#endif
-}
-
-int getCO2(int pin)
-{
-#ifdef HAVE_CO2
-  // Calculate CO2 concentration in ppm
-  float voltage = analogRead(pin) / 1024.0 * VOLTAGE_CONVERSION;
-  if (voltage == 0.0)
-  {
-    // Error
-    return -1.0;
-  }
-  else if (voltage < 400.0)
-  {
-    // Preheating
-    return -2.0;
-  }
-  else
-  {
-    float voltage_difference = voltage - 400.0;
-    return (int)(voltage_difference * 50.0 / 16.0);
-  }
-#else
-  return -1;
-#endif
-}
-
-float getEC(int pin, float temperature)
-{
-#ifdef HAVE_EC
-  float voltage = analogRead(pin) / 1024.0 * VOLTAGE_CONVERSION;
-  return ecProbe.readEC(voltage, temperature);
-#else
-  return -1;
-#endif
-}
-
-float getPH(int pin, float temperature)
-{
-#ifdef HAVE_PH
-  float voltage = analogRead(pin) / 1024.0 * VOLTAGE_CONVERSION;
-  return phProbe.readPH(voltage, temperature);
-#else
-  return -1;
-#endif
-}
-
-float getTempWet()
-{
-#ifdef HAVE_TEMP_WET
-  // returns the temperature from one DS18S20 in DEG Celsius
-  byte data[12];
-  byte addr[8];
-
-  if (!ds.search(addr))
-  {
-    // no more sensors on chain, reset search
-    ds.reset_search();
-    return -1000;
-  }
-
-  if (OneWire::crc8(addr, 7) != addr[7])
-  {
-    // Serial.println("CRC is not valid!");
-    return -1001;
-  }
-
-  if (addr[0] != 0x10 && addr[0] != 0x28)
-  {
-    // Serial.print("Device is not recognized");
-    return -1002;
-  }
-
-  ds.reset();
-  ds.select(addr);
-  ds.write(0x44, 1); // start conversion, with parasite power on at the end
-
-  byte present = ds.reset();
-  ds.select(addr);
-  ds.write(0xBE); // Read Scratchpad
-
-  for (int i = 0; i < 9; i++)
-  { // we need 9 bytes
-    data[i] = ds.read();
-  }
-
-  ds.reset_search();
-
-  byte MSB = data[1];
-  byte LSB = data[0];
-
-  float tempRead = ((MSB << 8) | LSB); // using two's compliment
-  float TemperatureSum = tempRead / 16;
-
-  return TemperatureSum;
-#else
-  return -1;
-#endif
-}
-
-float getFlow()
-/* From YF-S201 manual:
-   Pulse Characteristic:F=7Q(L/MIN).
-   2L/MIN=16HZ 4L/MIN=32.5HZ 6L/MIN=49.3HZ 8L/MIN=65.5HZ 10L/MIN=82HZ
-   sample_window is in milli seconds, so hz is pulseCount * 1000 / SAMPLE_WINDOW
- */
-{
 #ifdef HAVE_FLOW
-  float hertz = (float)(pulseCount * 1000.0) / SAMPLE_WINDOW;
-  pulseCount = 0; // reset flow counter
-  return hertz / 7.0;
-#else
-  return -1;
-#endif
-}
-
-void flowPulse()
+void sen0217InterruptHandler() // this exists because there is no way to pass an instance method to the interrupt
 {
-  pulseCount += 1;
+  sensors.sen0217Interrupt();
 }
-
-int getMoisture(int pin)
-{
-#ifdef HAVE_MOISTURE
-  // Need to calibrate this
-  int dry = 587;
-  int wet = 84;
-  int reading = analogRead(pin);
-  return (int)(100.0 * (dry - reading) / (dry - wet));
-#else
-  return -1;
 #endif
-}
 
 void printMacAddress(byte mac[])
 {
@@ -407,7 +240,7 @@ String urlEncode(const char *src)
   return ret;
 }
 
-String createLineProtocol(int light, float tempair, float humidity, float flow, int co2, float tempwet, float ec, float ph, int moisture)
+String createLineProtocol(FuFarmSensorsData *data)
 {
   String lineProtocol = INFLUXDB_MEASUREMENT;
   // Tags
@@ -416,36 +249,36 @@ String createLineProtocol(int light, float tempair, float humidity, float flow, 
   // Fields
   // Temperature and humidity are always configured when using InfluxDB
   lineProtocol += " tempair=";
-  lineProtocol += String(tempair, 2);
+  lineProtocol += String(data->temperature.air, 2);
   lineProtocol += ",humidity=";
-  lineProtocol += String(humidity, 2);
+  lineProtocol += String(data->humidity, 2);
 #ifdef HAVE_LIGHT
   lineProtocol += ",light=";
-  lineProtocol += light;
+  lineProtocol += data->light;
 #endif
 #ifdef HAVE_FLOW
   lineProtocol += ",flow=";
-  lineProtocol += String(flow, 1);
+  lineProtocol += String(data->flow, 1);
 #endif
 #ifdef HAVE_CO2
   lineProtocol += ",co2=";
-  lineProtocol += co2;
+  lineProtocol += data->co2;
 #endif
 #ifdef HAVE_TEMP_WET
   lineProtocol += ",tempwet=";
-  lineProtocol += String(tempwet, 2);
+  lineProtocol += String(data->temperature.wet, 2);
 #endif
 #ifdef HAVE_EC
   lineProtocol += ",cond=";
-  lineProtocol += String(ec, 2);
+  lineProtocol += String(data->ec, 2);
 #endif
 #ifdef HAVE_PH
   lineProtocol += ",ph=";
-  lineProtocol += String(ph, 2);
+  lineProtocol += String(data->ph, 2);
 #endif
 #ifdef HAVE_MOISTURE
   lineProtocol += ",moisture=";
-  lineProtocol += moisture;
+  lineProtocol += data->moisture;
 #endif
   return lineProtocol;
 }
@@ -477,9 +310,9 @@ int postData(String lineProtocol){
   return 0;
 }
 
-int postDataToInfluxDB(int light, float tempair, float humidity, float flow, int co2, float tempwet, float ec, float ph, int moisture)
+int postDataToInfluxDB(FuFarmSensorsData *data)
 {
-  String lineProtocol = createLineProtocol(light, tempair, humidity, flow, co2, tempwet, ec, ph, moisture);
+  String lineProtocol = createLineProtocol(data);
   Serial.print("Created line protocol: ");
   Serial.println(lineProtocol);
 #ifdef MOCK
@@ -575,50 +408,50 @@ void haPublishSensor(String name, String value){
   client.publish(topic.c_str(), value.c_str(), true);
 }
 
-  void haPublishData(int light, float tempair, float humidity, float flow, int co2, float tempwet, float ec, float ph, int moisture) {
+  void haPublishData(FuFarmSensorsData *data) {
     String value = "";
     String sensor = "";
 #ifdef HAVE_LIGHT
     sensor = "illuminance";
-    value = (String)light;
+    value = (String)data->light;
     haPublishSensor(sensor, value);
 #endif
 #ifdef HAVE_TEMP_HUMIDITY
     sensor = "temperature";
-    value = (String)tempair;
+    value = (String)data->temperature.air;
     haPublishSensor(sensor, value);
     sensor = "humidity";
-    value = (String)humidity;
+    value = (String)data->humidity;
     haPublishSensor(sensor, value);
 #endif
 #ifdef HAVE_FLOW
     sensor = "volume_flow_rate";
-    value = (String)flow;
+    value = (String)data->flow;
     haPublishSensor(sensor, value);
 #endif
 #ifdef HAVE_TEMP_WET
   sensor = "tempwet";
-  value = (String)tempwet;
+  value = (String)data->temperature.wet;
   haPublishSensor(sensor, value);
 #endif
 #ifdef HAVE_CO2
   sensor = "carbon_dioxide";
-  value = (String)co2;
+  value = (String)data->co2;
   haPublishSensor(sensor, value);
 #endif
 #ifdef HAVE_EC
   sensor = "ec";
-  value = (String)ec;
+  value = (String)data->ec;
   haPublishSensor(sensor, value);
 #endif
 #ifdef HAVE_PH
   sensor = "ph";
-  value = (String)ph;
+  value = (String)data->ph;
   haPublishSensor(sensor, value);
 #endif
 #ifdef HAVE_MOISTURE
   sensor = "moisture";
-  value = (String)moisture;
+  value = (String)data->moisture;
   haPublishSensor(sensor, value);
 #endif
     }
@@ -650,26 +483,14 @@ void setup()
 {
   //    pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);
-  dht.setup(SENSORS_DHT22_PIN, DHTesp::DHT22);
 
   // https://www.arduino.cc/reference/en/language/functions/analog-io/analogreference/
   // analogReference(DEFAULT); // Set the default voltage of the reference voltage
   analogReference(VDD); // VDD: Vdd of the ATmega4809. 5V on the Uno WiFi Rev2
 
-#ifdef HAVE_FLOW
-  attachInterrupt(digitalPinToInterrupt(SENSORS_SEN0217_PIN), flowPulse, RISING);
-  pulseCount = 0;
-#endif
+  sensors.begin();
 
-#ifdef HAVE_EC
-  ecProbe.begin();
-#endif
-
-#ifdef HAVE_PH
-  phProbe.begin();
-#endif
-
-#ifndef MOCK
+#ifdef MOCK
   // check for the WiFi module:
   if (WiFi.status() == WL_NO_MODULE)
   {
@@ -704,26 +525,10 @@ void loop()
   // digitalWrite(LED_BUILTIN, HIGH);
   connectToWifi();
 
-  int light = getLight(SENSORS_LIGHT_PIN);
-  TempAndHumidity th = dht.getTempAndHumidity();
-  float tempair = th.temperature;
-  float humidity = th.humidity;
-  float flow = getFlow();
-  int co2 = getCO2(SENSORS_CO2_PIN);
-#ifdef HAVE_TEMP_WET
-  float tempwet = getTempWet();
-  float calibrationTemperature = tempwet;
-  if (tempwet == -1000 || tempwet == -1001 || tempwet == -1002) {
-    calibrationTemperature = tempair;
-  }
-#else
-  float calibrationTemperature = tempair;
-#endif
-  float ec = getEC(SENSORS_EC_PIN, calibrationTemperature);
-  float ph = getPH(SENSORS_PH_PIN, calibrationTemperature);
-  int moisture = getMoisture(SENSORS_MOISTURE_PIN);
+  sensors.read(&sensorsData);
+
 #if USE_INFLUXDB
-  postDataToInfluxDB(light, tempair, humidity, flow, co2, tempwet, ec, ph, moisture);
+  postDataToInfluxDB(&sensorsData);
 #endif // USE_INFLUXDB
 
 #if USE_HOME_ASSISTANT
@@ -731,7 +536,7 @@ void loop()
     reconnect();
   }
   client.loop();
-  haPublishData(light, tempair, humidity, flow, co2, tempwet, ec, ph, moisture);
+  haPublishData(&sensorsData);
   Serial.println("INFO: Closing the MQTT connection");
   client.disconnect();
 #endif // USE_HOME_ASSISTANT
