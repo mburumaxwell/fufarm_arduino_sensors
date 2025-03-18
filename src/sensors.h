@@ -20,6 +20,7 @@ struct FuFarmSensorsData {
   float ec;
   float ph;
   int moisture;
+  bool waterLevelState;
 };
 
 class FuFarmSensors
@@ -62,6 +63,7 @@ private:
   float readFlow();
   int readMoisture();
   float readTempWet();
+  bool readWaterLevelState();
 
 private:
   char buffer[10];
