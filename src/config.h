@@ -69,6 +69,10 @@
   #endif
 #endif
 
+#ifdef SENSORS_DS18S20_PIN
+  #define HAVE_TEMP_WET
+#endif
+
 #ifdef CALIBRATION_TOGGLE_PIN
   #define SUPPORTS_CALIBRATION
 
@@ -82,25 +86,21 @@
   #endif
 #endif
 
-#ifdef SENSORS_DS18S20_PIN
-  #define HAVE_TEMP_WET
-#endif
-
-#ifndef USE_INFLUXDB
-  #define USE_INFLUXDB 0
-#endif
-
 #ifndef USE_HOME_ASSISTANT
   #define USE_HOME_ASSISTANT 0
 #endif
 
 // Validation of the build configuration
-#if !defined(HAVE_TEMP_HUMIDITY) && (USE_INFLUXDB == 1)
-  #error "Temperature and Humidity sensor must be setup when using influxdb directly"
+#if !defined(HAVE_TEMP_WET) && (defined(HAVE_EC) || defined(HAVE_PH))
+  #pragma message "⚠️ Without DS18S20 (wet temperature), calibration of EC and PH sensors is done using air temperature which may not be as accurate!"
 #endif
 
-#if !defined(HAVE_TEMP_WET) && (defined(HAVE_EC) || defined(HAVE_PH))
-  #pragma message "⚠️ Without DS18S20 (wet temperature), calibration or EC and PH sensors is done using air temperature which may not be as accurate!"
+#if !defined(HAVE_LIGHT) && !defined(HAVE_CO2) && \
+    !defined(HAVE_EC) && !defined(HAVE_PH) && \
+    !defined(HAVE_MOUSTIRE) && !defined(HAVE_TEMP_HUMIDITY) && \
+    !defined(HAVE_FLOW) && !defined(HAVE_TEMP_WET) &&\
+    !defined(MOCK)
+  #error "At least one sensor must be configured unless mocking"
 #endif
 
 // WiFi
@@ -108,7 +108,6 @@
   #define HAVE_WIFI 1
 #elif defined(ARDUINO_AVR_LEONARDO)
   #undef USE_HOME_ASSISTANT
-  #undef USE_INFLUXDB
 #endif
 
 #endif // CONFIG_H

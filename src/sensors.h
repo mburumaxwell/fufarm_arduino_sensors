@@ -1,3 +1,6 @@
+#ifndef SENSORS_H
+#define SENSORS_H
+
 #include <DFRobot_EC.h>
 #include <DFRobot_PH.h>
 #include <DHTesp.h>
@@ -65,3 +68,5 @@ private:
   uint8_t bufferIndex;
   bool cmdSerialDataAvailable();
 };
+
+#endif // SENSORS_H

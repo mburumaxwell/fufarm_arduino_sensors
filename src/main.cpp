@@ -32,25 +32,6 @@ char* MQTT_USER = "hamqtt";
 char* MQTT_PASSWORD = "UbT4Rn3oY7!S9L";
 #endif // USE_HOME_ASSISTANT
 
-#if USE_INFLUXDB
-// InfluxDB v2 server url, e.g. https://eu-central-1-1.aws.cloud2.influxdata.com (Use: InfluxDB UI -> Load Data -> Client Libraries)
-#define INFLUXDB_SSL // Uncomment to connect via SSL on port 443
-// #define INFLUXDB_PORT 8086
-#define INFLUXDB_SERVER "europe-west1-1.gcp.cloud2.influxdata.com"
-// #define INFLUXDB_SERVER "eu-central-1-1.aws.cloud2.influxdata.com"
-// #define INFLUXDB_SERVER "farmuaa1.farmurban.co.uk"
-// InfluxDB v2 server or cloud API authentication token (Use: InfluxDB UI -> Load Data -> API Tokens -> <select token>)
-#define INFLUXDB_TOKEN "jmhtqC2iVoUIVgHmfr6nL6kLXeinh3PpC_duaoqbPO7HtSGW8RUyumq6X4v35nZz-73qco3f66P8pbTTRJ20DKsEoQ=="
-// #define INFLUXDB_TOKEN "jmhtTmGBbzIfpaAmkO5bX2X8YHaZja5FHeplIZGjivGyXKYXExOTv75h6ByIJHH695LwEwUl1g1CHqTADITxkmzTdA=="
-// InfluxDB v2 organization id (Use: InfluxDB UI -> User -> About -> Common Ids )
-#define INFLUXDB_ORG "s.bannon@liverpool.ac.uk"
-// #define INFLUXDB_ORG "Farm Urban"
-#define INFLUXDB_BUCKET "UTC Experiment 1"
-// #define INFLUXDB_BUCKET "Jens Home"
-#define INFLUXDB_MEASUREMENT "sensors"
-#define INFLUXDB_STATION_ID "sys1"
-#endif
-
 extern void sen0217InterruptHandler(); // defined later in the file
 FuFarmSensors sensors(sen0217InterruptHandler);
 FuFarmSensorsData sensorsData;
@@ -214,144 +195,6 @@ void shutdownWifi()
   WiFi.end();
 }
 #endif
-
-#if USE_INFLUXDB
-// From: https://github.com/tobiasschuerg/InfluxDB-Client-for-Arduino/blob/master/src/util/helpers.cpp
-static char invalidChars[] = "$&+,/:;=?@ <>#%{}|\\^~[]`";
-static char hex_digit(char c)
-{
-  return "0123456789ABCDEF"[c & 0x0F];
-}
-
-String urlEncode(const char *src)
-{
-  int n = 0;
-  char c, *s = (char *)src;
-  while ((c = *s++))
-  {
-    if (strchr(invalidChars, c))
-    {
-      n++;
-    }
-  }
-  String ret;
-  ret.reserve(strlen(src) + 2 * n + 1);
-  s = (char *)src;
-  while ((c = *s++))
-  {
-    if (strchr(invalidChars, c))
-    {
-      ret += '%';
-      ret += hex_digit(c >> 4);
-      ret += hex_digit(c);
-    }
-    else
-      ret += c;
-  }
-  return ret;
-}
-
-String createLineProtocol(FuFarmSensorsData *data)
-{
-  String lineProtocol = INFLUXDB_MEASUREMENT;
-  // Tags
-  lineProtocol += ",station_id=";
-  lineProtocol += INFLUXDB_STATION_ID;
-  // Fields
-  // Temperature and humidity are always configured when using InfluxDB
-  lineProtocol += " tempair=";
-  lineProtocol += String(data->temperature.air, 2);
-  lineProtocol += ",humidity=";
-  lineProtocol += String(data->humidity, 2);
-#ifdef HAVE_LIGHT
-  lineProtocol += ",light=";
-  lineProtocol += data->light;
-#endif
-#ifdef HAVE_FLOW
-  lineProtocol += ",flow=";
-  lineProtocol += String(data->flow, 1);
-#endif
-#ifdef HAVE_CO2
-  lineProtocol += ",co2=";
-  lineProtocol += data->co2;
-#endif
-#ifdef HAVE_TEMP_WET
-  lineProtocol += ",tempwet=";
-  lineProtocol += String(data->temperature.wet, 2);
-#endif
-#ifdef HAVE_EC
-  lineProtocol += ",cond=";
-  lineProtocol += String(data->ec, 2);
-#endif
-#ifdef HAVE_PH
-  lineProtocol += ",ph=";
-  lineProtocol += String(data->ph, 2);
-#endif
-#ifdef HAVE_MOISTURE
-  lineProtocol += ",moisture=";
-  lineProtocol += data->moisture;
-#endif
-  return lineProtocol;
-}
-
-int postData(String lineProtocol){
-  String url = "/api/v2/write?org=" + urlEncode(INFLUXDB_ORG);
-  url += "&bucket=";
-  url += urlEncode(INFLUXDB_BUCKET);
-  wifiClient.println("POST " + url + " HTTP/1.1");
-  wifiClient.println("Host: " + String(INFLUXDB_SERVER));
-  wifiClient.println("Content-Type: text/plain");
-  wifiClient.println("Authorization: Token " + String(INFLUXDB_TOKEN));
-  wifiClient.println("Connection: close");
-  wifiClient.print("Content-Length: ");
-  wifiClient.println(lineProtocol.length());
-  wifiClient.println();   // end HTTP header
-  wifiClient.print(lineProtocol); // send HTTP body
-
-  // Debug return values
-  delay(2000); // Need to wait for response to come back - not sure of optimal time
-  Serial.println("<Http Response>");
-  while (wifiClient.available())
-  {
-    // read an incoming byte from the server and print it to serial monitor:
-    char c = wifiClient.read();
-    Serial.print(c);
-  }
-  Serial.println("</Http Response>");
-  return 0;
-}
-
-int postDataToInfluxDB(FuFarmSensorsData *data)
-{
-  String lineProtocol = createLineProtocol(data);
-  Serial.print("Created line protocol: ");
-  Serial.println(lineProtocol);
-#ifdef MOCK
-  Serial.println("Skipping postDataToInfluxDB");
-  return;
-#endif
-  Serial.print("Attempting to connect to: ");
-  Serial.println(INFLUXDB_SERVER);
-#ifdef INFLUXDB_SSL
-  if (wifiClient.connectSSL(INFLUXDB_SERVER, 443))
-#else
-  if (wifiClient.connect(INFLUXDB_SERVER, INFLUXDB_PORT))
-#endif
-  {
-    Serial.println("connected");
-    postData(lineProtocol);
-    if (wifiClient.connected())
-    {
-      wifiClient.stop();
-    }
-  Serial.println("disconnected");
-  } else { // if not connected:
-    Serial.println("connection failed");
-    wifiClient.stop();
-    return -1;
-  }
-}
-#endif // USE_INFLUXDB
 
 #if USE_HOME_ASSISTANT
 String haSensorName(String name){
@@ -575,10 +418,6 @@ void loop()
 
   sensors.read(&sensorsData);
 
-#if USE_INFLUXDB
-  postDataToInfluxDB(&sensorsData);
-#endif // USE_INFLUXDB
-
 #if USE_HOME_ASSISTANT
 #ifndef MOCK
   if (!client.connected()) {
@@ -607,7 +446,7 @@ void loop()
   doc["humidity"] = sensorsData.humidity;
   doc["tempwet"] = sensorsData.temperature.wet;
   doc["co2"] = sensorsData.co2;
-  doc["ec"] = sensorsData.ec; // For unfathomable reasons influxdb won't accept ec as a name so we use cond. WTF?!?!?!@@
+  doc["ec"] = sensorsData.ec;
   doc["ph"] = sensorsData.ph;
   doc["flow"] = sensorsData.flow;
   doc["light"] = sensorsData.light;
