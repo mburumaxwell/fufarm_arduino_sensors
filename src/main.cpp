@@ -274,7 +274,7 @@ void haPublishSensor(String name, bool isBinary, String value){
     String sensor = "";
 #ifdef HAVE_WATER_LEVEL_STATE
     sensor = "water_level";
-    value = (String)data->waterLevelState;
+    value = data->waterLevelState ? "ON" : "OFF";
     haPublishSensor(sensor, true, value);
 #endif
 #ifdef HAVE_LIGHT
