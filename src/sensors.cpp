@@ -20,6 +20,10 @@ FuFarmSensors::~FuFarmSensors()
 
 void FuFarmSensors::begin()
 {
+#ifdef HAVE_WATER_LEVEL_STATE
+  pinMode(SENSORS_SEN0204_PIN, INPUT);
+#endif
+
 #ifdef HAVE_TEMP_HUMIDITY
   dht.setup(SENSORS_DHT22_PIN, DHTesp::DHT22);
 #endif
@@ -160,6 +164,7 @@ void FuFarmSensors::read(FuFarmSensorsData *dest)
   dest->ec = readEC(calibrationTemperature);
   dest->ph = readPH(calibrationTemperature);
   dest->moisture = readMoisture();
+  dest->waterLevelState = readWaterLevelState();
 }
 
 void FuFarmSensors::sen0217Interrupt()
@@ -168,6 +173,16 @@ void FuFarmSensors::sen0217Interrupt()
   pulseCount += 1;
 #endif
 }
+
+bool FuFarmSensors::readWaterLevelState()
+{
+#ifdef HAVE_WATER_LEVEL_STATE
+  return (bool)digitalRead(SENSORS_SEN0204_PIN);
+#else
+  return false;
+#endif
+}
+
 
 int FuFarmSensors::readLight()
 {

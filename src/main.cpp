@@ -21,7 +21,7 @@
 #define BUFFER_SIZE 256
 
 #if USE_HOME_ASSISTANT
-String HA_PREFIX = "homeassistant/sensor";
+String HA_DISCOVERY_PREFIX = "homeassistant";
 #include <PubSubClient.h>
 // Using char* as might store in PROGMEM later
 #define MQTT_KEEPALIVE 90
@@ -202,16 +202,17 @@ String haSensorName(String name){
   return sensor_name;
 }
 
-String haSensorTopic(String name, String type){
+String haSensorTopic(String name, String type, bool isBinary){
   String sensor_name = haSensorName(name);
-  String topic = HA_PREFIX + "/" + sensor_name + "/" + type;
+  String sensor_prefix = isBinary ? "binary_sensor" : "sensor";
+  String topic = HA_DISCOVERY_PREFIX + "/" + sensor_prefix + "/" + sensor_name + "/" + type;
   return topic;
 }
 
-void haAnnounceSensor(String name, String type, JsonDocument& payload, char buffer[]){
+void haAnnounceSensor(String name, String type, bool isBinary, JsonDocument& payload, char buffer[]){
   String sensor_name = haSensorName(name);
-  String config_topic = haSensorTopic(name, "config");
-  String state_topic = haSensorTopic(name, "state");
+  String config_topic = haSensorTopic(name, "config", isBinary);
+  String state_topic = haSensorTopic(name, "state", isBinary);
   payload["name"] = sensor_name;
   payload["device_class"] = type; // https://www.home-assistant.io/integrations/sensor/#device-class
   payload["state_topic"] = state_topic;
@@ -228,35 +229,39 @@ void haAnnounceSensor(String name, String type, JsonDocument& payload, char buff
 void haRegisterSensors() {
   StaticJsonDocument<200> payload;
   char buffer[BUFFER_SIZE];
+  #ifdef HAVE_WATER_LEVEL_STATE
+  // https://www.home-assistant.io/integrations/binary_sensor/
+  haAnnounceSensor(String("water_level"), String("moisture"), true, payload, buffer);
+#endif
 #ifdef HAVE_LIGHT
-  haAnnounceSensor(String("illuminance"), String("illuminance"), payload, buffer);
+  haAnnounceSensor(String("illuminance"), String("illuminance"), false, payload, buffer);
 #endif
 #ifdef HAVE_TEMP_HUMIDITY
-  haAnnounceSensor(String("temperature"), String("temperature"), payload, buffer);
-  haAnnounceSensor(String("humidity"), String("humidity"), payload, buffer);
+  haAnnounceSensor(String("temperature"), String("temperature"), false, payload, buffer);
+  haAnnounceSensor(String("humidity"), String("humidity"), false, payload, buffer);
 #endif
 #ifdef HAVE_FLOW
-  haAnnounceSensor(String("volume_flow_rate"), String("volume_flow_rate"), payload, buffer);
+  haAnnounceSensor(String("volume_flow_rate"), String("volume_flow_rate"), false, payload, buffer);
 #endif
 #ifdef HAVE_TEMP_WET
-  haAnnounceSensor(String("liquidtemp"), String("temperature"), payload, buffer);
+  haAnnounceSensor(String("liquidtemp"), String("temperature"), false, payload, buffer);
 #endif
 #ifdef HAVE_CO2
-  haAnnounceSensor(String("carbon_dioxide"), String("carbon_dioxide"), payload, buffer);
+  haAnnounceSensor(String("carbon_dioxide"), String("carbon_dioxide"), false, payload, buffer);
 #endif
 #ifdef HAVE_EC
-  haAnnounceSensor(String("ec"), String("ec"), payload, buffer);
+  haAnnounceSensor(String("ec"), String("ec"), false, payload, buffer);
 #endif
 #ifdef HAVE_PH
-  haAnnounceSensor(String("ph"), String("ph"), payload, buffer);
+  haAnnounceSensor(String("ph"), String("ph"), false, payload, buffer);
 #endif
 #ifdef HAVE_MOISTURE
-  haAnnounceSensor(String("moisture"), String("moisture"), payload, buffer);
+  haAnnounceSensor(String("moisture"), String("moisture"), false, payload, buffer);
 #endif
 }
 
-void haPublishSensor(String name, String value){
-  String topic = haSensorTopic(name, "state");
+void haPublishSensor(String name, bool isBinary, String value){
+  String topic = haSensorTopic(name, "state", isBinary);
   String info = "Publishing sensor: " + topic + " : " + value;
   Serial.println(info);
 #ifndef MOCK
@@ -267,48 +272,53 @@ void haPublishSensor(String name, String value){
   void haPublishData(FuFarmSensorsData *data) {
     String value = "";
     String sensor = "";
+#ifdef HAVE_WATER_LEVEL_STATE
+    sensor = "water_level";
+    value = data->waterLevelState ? "ON" : "OFF";
+    haPublishSensor(sensor, true, value);
+#endif
 #ifdef HAVE_LIGHT
     sensor = "illuminance";
     value = (String)data->light;
-    haPublishSensor(sensor, value);
+    haPublishSensor(sensor, false, value);
 #endif
 #ifdef HAVE_TEMP_HUMIDITY
     sensor = "temperature";
     value = (String)data->temperature.air;
-    haPublishSensor(sensor, value);
+    haPublishSensor(sensor, false, value);
     sensor = "humidity";
     value = (String)data->humidity;
-    haPublishSensor(sensor, value);
+    haPublishSensor(sensor, false, value);
 #endif
 #ifdef HAVE_FLOW
     sensor = "volume_flow_rate";
     value = (String)data->flow;
-    haPublishSensor(sensor, value);
+    haPublishSensor(sensor, false, value);
 #endif
 #ifdef HAVE_TEMP_WET
   sensor = "tempwet";
   value = (String)data->temperature.wet;
-  haPublishSensor(sensor, value);
+  haPublishSensor(sensor, false, value);
 #endif
 #ifdef HAVE_CO2
   sensor = "carbon_dioxide";
   value = (String)data->co2;
-  haPublishSensor(sensor, value);
+  haPublishSensor(sensor, false, value);
 #endif
 #ifdef HAVE_EC
   sensor = "ec";
   value = (String)data->ec;
-  haPublishSensor(sensor, value);
+  haPublishSensor(sensor, false, value);
 #endif
 #ifdef HAVE_PH
   sensor = "ph";
   value = (String)data->ph;
-  haPublishSensor(sensor, value);
+  haPublishSensor(sensor, false, value);
 #endif
 #ifdef HAVE_MOISTURE
   sensor = "moisture";
   value = (String)data->moisture;
-  haPublishSensor(sensor, value);
+  haPublishSensor(sensor, false, value);
 #endif
     }
 

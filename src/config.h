@@ -69,6 +69,10 @@
   #endif
 #endif
 
+#ifdef SENSORS_SEN0204_PIN
+  #define HAVE_WATER_LEVEL_STATE
+#endif
+
 #ifdef SENSORS_DS18S20_PIN
   #define HAVE_TEMP_WET
 #endif
@@ -99,7 +103,8 @@
     !defined(HAVE_EC) && !defined(HAVE_PH) && \
     !defined(HAVE_MOUSTIRE) && !defined(HAVE_TEMP_HUMIDITY) && \
     !defined(HAVE_FLOW) && !defined(HAVE_TEMP_WET) &&\
-    !defined(MOCK)
+    !defined(HAVE_WATER_LEVEL_STATE) &&\
+    !defined(MOCK) 
   #error "At least one sensor must be configured unless mocking"
 #endif
 
