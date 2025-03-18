@@ -32,28 +32,17 @@
 
 #ifdef SENSORS_DHT22_PIN
   #define HAVE_DHT22
-
-  // ensure only digital pins configured
-  #ifdef ARDUINO
-    #if SENSORS_DHT22_PIN < 0 || SENSORS_DHT22_PIN > 13
-      #error "Pin configured for DHT22 must a digital one."
-    #endif
-  #else // any other board we have not validated
-    #pragma message "⚠️ Unable to validate pin configured for DHT22."
-  #endif
 #endif
 
 #ifdef SENSORS_SEN0217_PIN
   #define HAVE_FLOW
 
   // For this flow sensor, only interrupt pins should be used. Configured on a rising edge
-  // https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/
-  // In case, that does not work, try the other another language via:
-  // https://www.arduino.cc/reference/cs/language/functions/external-interrupts/attachinterrupt/
+  // https://reference.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/
 
   #if defined(ARDUINO_AVR_UNO_WIFI_REV2) // all digital pins
     #if SENSORS_SEN0217_PIN < 0 || SENSORS_SEN0217_PIN > 13
-      #error "Pin configured for SEN0217 (flow sensor) must support interrupts."
+      #error "Pin configured for SEN0217 (flow sensor) must support interrupts on UNO WIFI REV2."
     #endif
   #elif defined(ARDUINO_AVR_LEONARDO) // only 0, 1, 2, 3, 7
     #if SENSORS_SEN0217_PIN == 0
@@ -62,7 +51,7 @@
     #elif SENSORS_SEN0217_PIN == 3
     #elif SENSORS_SEN0217_PIN == 7
     #else
-      #error "Pin configured for SEN0217 (flow sensor) must support interrupts."
+      #error "Pin configured for SEN0217 (flow sensor) must support interrupts on LEONARDO."
     #endif
   #else // any other board we have not validated
     #pragma message "⚠️ Unable to validate if pin configured for SEN0217 (flow sensor) allows interrupts required."
@@ -79,15 +68,6 @@
 
 #ifdef CALIBRATION_TOGGLE_PIN
   #define SUPPORTS_CALIBRATION
-
-  // ensure only digital pins configured
-  #ifdef ARDUINO
-    #if CALIBRATION_TOGGLE_PIN < 0 || CALIBRATION_TOGGLE_PIN > 13
-      #error "Pin configured for calibration toggle must a digital one."
-    #endif
-  #else // any other board we have not validated
-    #pragma message "⚠️ Unable to validate pin configured for calibration."
-  #endif
 #endif
 
 #ifndef USE_HOME_ASSISTANT
@@ -106,9 +86,9 @@
 #if !defined(HAVE_LIGHT) && !defined(HAVE_CO2) && \
     !defined(HAVE_EC) && !defined(HAVE_PH) && \
     !defined(HAVE_MOISTURE) && !defined(HAVE_DHT22) && \
-    !defined(HAVE_FLOW) && !defined(HAVE_TEMP_WET) &&\
-    !defined(HAVE_WATER_LEVEL_STATE) && !defined(HAVE_AHT20) &&\
-    !defined(MOCK) 
+    !defined(HAVE_FLOW) && !defined(HAVE_TEMP_WET) && \
+    !defined(HAVE_WATER_LEVEL_STATE) && !defined(HAVE_AHT20) && \
+    !defined(MOCK)
   #error "At least one sensor must be configured unless mocking"
 #endif
 

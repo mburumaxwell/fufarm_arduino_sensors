@@ -2,10 +2,23 @@
 #define SENSORS_H
 
 #include "config.h"
+
+#ifdef HAVE_EC
 #include <DFRobot_EC.h>
+#endif
+
+#ifdef HAVE_PH
 #include <DFRobot_PH.h>
+#endif
+
+#ifdef HAVE_DHT22
 #include <DHTesp.h>
+#endif
+
+#ifdef HAVE_TEMP_WET
 #include <OneWire.h>
+#endif
+
 #ifdef HAVE_AHT20
 #include <DFRobot_AHT20.h>
 #endif
