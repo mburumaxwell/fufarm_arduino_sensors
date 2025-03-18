@@ -20,7 +20,9 @@ FuFarmSensors::~FuFarmSensors()
 
 void FuFarmSensors::begin()
 {
+#ifdef HAVE_TEMP_HUMIDITY
   dht.setup(SENSORS_DHT22_PIN, DHTesp::DHT22);
+#endif
 
 #ifdef HAVE_FLOW
   pulseCount = 0;
@@ -57,7 +59,7 @@ void FuFarmSensors::calibration(unsigned long readIntervalMs)
 #ifdef HAVE_PH
   static float voltagePH, phValue;
 #endif
-  if (millis() - timepoint > readIntervalMs)
+  if ((millis() - timepoint) > readIntervalMs)
   {
     timepoint = millis();
 #ifndef HAVE_TEMP_WET
@@ -132,9 +134,15 @@ void FuFarmSensors::read(FuFarmSensorsData *dest)
 {
   dest->light = readLight();
 
+  float airTemperature = -1;
+#ifdef HAVE_TEMP_HUMIDITY
   TempAndHumidity th = dht.getTempAndHumidity();
-  float airTemperature = dest->temperature.air = th.temperature;
+  airTemperature = dest->temperature.air = th.temperature;
   dest->humidity = th.humidity;
+#else
+  airTemperature = dest->temperature.air = -1;
+  dest->humidity = -1;
+#endif
 
   dest->flow = readFlow();
   dest->co2 = readCO2();
