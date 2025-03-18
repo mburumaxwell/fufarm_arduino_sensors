@@ -31,7 +31,7 @@
 #endif
 
 #ifdef SENSORS_DHT22_PIN
-  #define HAVE_TEMP_HUMIDITY
+  #define HAVE_DHT22
 
   // ensure only digital pins configured
   #ifdef ARDUINO
@@ -99,11 +99,15 @@
   #pragma message "⚠️ Without DS18S20 (wet temperature), calibration of EC and PH sensors is done using air temperature which may not be as accurate!"
 #endif
 
+#if defined(HAVE_DHT22) && defined(HAVE_AHT20)
+  #error "Only one temperature and humidity sensor can be configured."
+#endif
+
 #if !defined(HAVE_LIGHT) && !defined(HAVE_CO2) && \
     !defined(HAVE_EC) && !defined(HAVE_PH) && \
-    !defined(HAVE_MOUSTIRE) && !defined(HAVE_TEMP_HUMIDITY) && \
+    !defined(HAVE_MOISTURE) && !defined(HAVE_DHT22) && \
     !defined(HAVE_FLOW) && !defined(HAVE_TEMP_WET) &&\
-    !defined(HAVE_WATER_LEVEL_STATE) &&\
+    !defined(HAVE_WATER_LEVEL_STATE) && !defined(HAVE_AHT20) &&\
     !defined(MOCK) 
   #error "At least one sensor must be configured unless mocking"
 #endif

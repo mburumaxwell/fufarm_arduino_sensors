@@ -24,8 +24,23 @@ void FuFarmSensors::begin()
   pinMode(SENSORS_SEN0204_PIN, INPUT);
 #endif
 
-#ifdef HAVE_TEMP_HUMIDITY
+#ifdef HAVE_DHT22
   dht.setup(SENSORS_DHT22_PIN, DHTesp::DHT22);
+#elif HAVE_AHT20
+  uint8_t status;
+  int count = 0;
+  while ((status = aht20.begin()) != 0)
+  {
+    Serial.print("AHT20 sensor initialisation failed. error status : ");
+    Serial.println(status);
+    count++;
+    if (count > 5)
+    {
+      Serial.print("Could not initialise AHT20 sensor - continuing without it");
+      break;
+    }
+    delay(1000);
+  }
 #endif
 
 #ifdef HAVE_FLOW
@@ -139,10 +154,19 @@ void FuFarmSensors::read(FuFarmSensorsData *dest)
   dest->light = readLight();
 
   float airTemperature = -1;
-#ifdef HAVE_TEMP_HUMIDITY
+#ifdef HAVE_DHT22
   TempAndHumidity th = dht.getTempAndHumidity();
   airTemperature = dest->temperature.air = th.temperature;
   dest->humidity = th.humidity;
+#elif HAVE_AHT20
+  if(aht20.startMeasurementReady(true)){
+    airTemperature = dest->temperature.air = aht20.getTemperature_C();
+    dest->humidity = aht20.getHumidity_RH();
+  } else {
+    Serial.println("AHT20 sensor not ready");
+    airTemperature = dest->temperature.air = -1;
+    dest->humidity = -1;
+  }
 #else
   airTemperature = dest->temperature.air = -1;
   dest->humidity = -1;

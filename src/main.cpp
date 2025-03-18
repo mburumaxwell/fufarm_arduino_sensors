@@ -236,7 +236,7 @@ void haRegisterSensors() {
 #ifdef HAVE_LIGHT
   haAnnounceSensor(String("illuminance"), String("illuminance"), false, payload, buffer);
 #endif
-#ifdef HAVE_TEMP_HUMIDITY
+#if defined(HAVE_DHT22) || defined(HAVE_AHT20)
   haAnnounceSensor(String("temperature"), String("temperature"), false, payload, buffer);
   haAnnounceSensor(String("humidity"), String("humidity"), false, payload, buffer);
 #endif
@@ -282,14 +282,15 @@ void haPublishSensor(String name, bool isBinary, String value){
     value = (String)data->light;
     haPublishSensor(sensor, false, value);
 #endif
-#ifdef HAVE_TEMP_HUMIDITY
+#if defined(HAVE_DHT22) || defined(HAVE_AHT20)
     sensor = "temperature";
     value = (String)data->temperature.air;
     haPublishSensor(sensor, false, value);
     sensor = "humidity";
     value = (String)data->humidity;
     haPublishSensor(sensor, false, value);
-#endif
+#endif  
+
 #ifdef HAVE_FLOW
     sensor = "volume_flow_rate";
     value = (String)data->flow;
@@ -461,6 +462,7 @@ void loop()
   doc["flow"] = sensorsData.flow;
   doc["light"] = sensorsData.light;
   doc["moisture"] = sensorsData.moisture;
+  doc["water_level"] = sensorsData.waterLevelState;
 
   serializeJson(doc, Serial);
   Serial.println();
