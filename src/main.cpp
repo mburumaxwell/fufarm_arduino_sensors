@@ -1,5 +1,6 @@
 #include "config.h"
 
+#if HAVE_WIFI
 /*
  * Need to update the firmware on the Wifi Uno Rev2 and upload the SSL certificate for INFLUXDB_SERVER
  * Getting this to work required multiple attempts and deleting the arduino.cc certificate. Instructions
@@ -7,7 +8,6 @@
  *
  * */
 #include <SPI.h>
-#if HAVE_WIFI
 // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/wifi.html#wi-fi-reason-code
 #include <WiFiNINA.h>
 #endif
