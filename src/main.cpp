@@ -39,10 +39,6 @@ static boolean calibrationMode = false;
 
 // Wifi control
 #if HAVE_WIFI
-char ssid[] = "fumanc";
-char pass[] = "FARM123!";
-// char ssid[] = "PLUSNET-CFC9WG";
-// char pass[] = "G7UtKycGmxGYDq";
 int wifiStatus = WL_IDLE_STATUS; // the Wifi radio's status
 WiFiClient wifiClient;
 #else
@@ -175,9 +171,19 @@ void connectToWifi()
       Serial.println();
     }
     Serial.print("Attempting to connect to WPA SSID: ");
-    Serial.println(ssid);
+    Serial.println(WIFI_SSID);
     WiFi.disconnect(); // Clear network stack https://forum.arduino.cc/t/mqtt-with-esp32-gives-timeout-exceeded-disconnecting/688723/5
-    wifiStatus = WiFi.begin(ssid, pass);
+#if defined(WIFI_ENTERPRISE_USERNAME) && defined(WIFI_ENTERPRISE_PASSWORD)
+    wifiStatus = WiFi.beginEnterprise(WIFI_SSID,
+                                      WIFI_ENTERPRISE_USERNAME,
+                                      WIFI_ENTERPRISE_PASSWORD,
+                                      WIFI_ENTERPRISE_IDENTITY,
+                                      WIFI_ENTERPRISE_CA);
+#elif defined(WIFI_PASSPHRASE)
+    wifiStatus = WiFi.begin(WIFI_SSID, WIFI_PASSPHRASE);
+#else
+    wifiStatus = WiFi.begin(WIFI_SSID);
+#endif
     delay(10000);
     attempts++;
   }

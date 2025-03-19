@@ -99,4 +99,16 @@
   #undef USE_HOME_ASSISTANT
 #endif
 
+#if (defined(WIFI_ENTERPRISE_USERNAME) && !defined(WIFI_ENTERPRISE_PASSWORD)) || \
+    (!defined(WIFI_ENTERPRISE_USERNAME) && defined(WIFI_ENTERPRISE_PASSWORD))
+  #error "Enterprise WIFI (802.1x) requires both username and password"
+#else
+  #ifndef WIFI_ENTERPRISE_IDENTITY
+    #define WIFI_ENTERPRISE_IDENTITY "" // default in the library
+  #endif
+  #ifndef WIFI_ENTERPRISE_CA
+    #define WIFI_ENTERPRISE_CA "" // default in the library
+  #endif
+#endif
+
 #endif // CONFIG_H
