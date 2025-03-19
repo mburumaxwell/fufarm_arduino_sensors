@@ -159,10 +159,13 @@ void FuFarmSensors::read(FuFarmSensorsData *dest)
   airTemperature = dest->temperature.air = th.temperature;
   dest->humidity = th.humidity;
 #elif HAVE_AHT20
-  if(aht20.startMeasurementReady(true)){
+  if (aht20.startMeasurementReady(true))
+  {
     airTemperature = dest->temperature.air = aht20.getTemperature_C();
     dest->humidity = aht20.getHumidity_RH();
-  } else {
+  }
+  else
+  {
     Serial.println("AHT20 sensor not ready");
     airTemperature = dest->temperature.air = -1;
     dest->humidity = -1;
@@ -206,7 +209,6 @@ bool FuFarmSensors::readWaterLevelState()
   return false;
 #endif
 }
-
 
 int FuFarmSensors::readLight()
 {
@@ -366,4 +368,17 @@ bool FuFarmSensors::cmdSerialDataAvailable()
     }
   }
   return false;
+}
+
+char *FuFarmSensors::strupr(char *str)
+{
+  if (str == NULL)
+    return NULL;
+  char *ptr = str;
+  while (*ptr != ' ')
+  {
+    *ptr = toupper((unsigned char)*ptr);
+    ptr++;
+  }
+  return str;
 }

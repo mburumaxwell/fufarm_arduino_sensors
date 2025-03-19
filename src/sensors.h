@@ -25,12 +25,14 @@
 
 #include "config.h"
 
-struct FuFarmSensorsData {
+struct FuFarmSensorsData
+{
   int light;
   float humidity;
   float flow;
   int co2;
-  struct FuFarmSensorsTemperature {
+  struct FuFarmSensorsTemperature
+  {
     float air;
     float wet;
   } temperature;
@@ -47,7 +49,7 @@ public:
   ~FuFarmSensors();
   void begin();                                           // initialization
   void calibration(unsigned long readIntervalMs = 1000U); // calibration, should be called in a loop, ideally a config mode
-  void read(FuFarmSensorsData* dest);                     // read all sensor data
+  void read(FuFarmSensorsData *dest);                     // read all sensor data
   void sen0217Interrupt();                                // should be called from the interrupt handler passed in the constructor
 
 private:
@@ -88,6 +90,7 @@ private:
   char buffer[10];
   uint8_t bufferIndex;
   bool cmdSerialDataAvailable();
+  char *strupr(char *str);
 };
 
 #endif // SENSORS_H
