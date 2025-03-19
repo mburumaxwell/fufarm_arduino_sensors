@@ -1,36 +1,20 @@
 #include "config.h"
 
-#if HAVE_WIFI
+#if defined(ARDUINO_AVR_UNO_WIFI_REV2)
 /*
  * Need to update the firmware on the Wifi Uno Rev2 and upload the SSL certificate for INFLUXDB_SERVER
  * Getting this to work required multiple attempts and deleting the arduino.cc certificate. Instructions
  * are available at: https://github.com/xcape-io/ArduinoProps/blob/master/help/WifiNinaFirmware.md
  *
  * */
-#include <SPI.h>
 // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/wifi.html#wi-fi-reason-code
 #include <WiFiNINA.h>
 #endif
 
-#if defined(ARDUINO_AVR_LEONARDO) || defined(USE_HOME_ASSISTANT)
 #include <ArduinoJson.h>
-#endif
-
 #include "sensors.h"
 
 #define BUFFER_SIZE 256
-
-#if USE_HOME_ASSISTANT
-String HA_DISCOVERY_PREFIX = "homeassistant";
-#include <PubSubClient.h>
-// Using char* as might store in PROGMEM later
-#define MQTT_KEEPALIVE 90
-String MQTT_CLIENT_ID = "ard1";
-char* MQTT_SERVER_IP = "192.168.8.100";
-uint16_t MQTT_SERVER_PORT = 1883;
-char* MQTT_USER = "hamqtt";
-char* MQTT_PASSWORD = "UbT4Rn3oY7!S9L";
-#endif // USE_HOME_ASSISTANT
 
 extern void sen0217InterruptHandler(); // defined later in the file
 FuFarmSensors sensors(sen0217InterruptHandler);
@@ -39,16 +23,16 @@ static boolean calibrationMode = false;
 
 // Wifi control
 #if HAVE_WIFI
+#include <PubSubClient.h>
+
+String HA_DISCOVERY_PREFIX = "homeassistant";
+String MQTT_CLIENT_ID(HOME_ASSISTANT_MQTT_CLIENT_ID);
 int wifiStatus = WL_IDLE_STATUS; // the Wifi radio's status
 WiFiClient wifiClient;
+PubSubClient client(wifiClient);
 #else
 StaticJsonDocument<200> doc;
 #endif
-
-
-#if USE_HOME_ASSISTANT
-PubSubClient client(wifiClient);
-#endif // USE_HOME_ASSISTANT
 
 #ifdef HAVE_FLOW
 void sen0217InterruptHandler() // this exists because there is no way to pass an instance method to the interrupt
@@ -200,9 +184,7 @@ void shutdownWifi()
   WiFi.disconnect();
   WiFi.end();
 }
-#endif
 
-#if USE_HOME_ASSISTANT
 String haSensorName(String name){
   String sensor_name = MQTT_CLIENT_ID + "_" + name;
   return sensor_name;
@@ -295,7 +277,7 @@ void haPublishSensor(String name, bool isBinary, String value){
     sensor = "humidity";
     value = (String)data->humidity;
     haPublishSensor(sensor, false, value);
-#endif  
+#endif
 
 #ifdef HAVE_FLOW
     sensor = "volume_flow_rate";
@@ -335,8 +317,8 @@ void reconnect() {
   while (!client.connected()) {
     Serial.println("INFO: Attempting MQTT connection...");
     // Attempt to connect
-    client.setKeepAlive(MQTT_KEEPALIVE);
-    if (client.connect(MQTT_CLIENT_ID.c_str(), MQTT_USER, MQTT_PASSWORD))
+    client.setKeepAlive(HOME_ASSISTANT_MQTT_KEEPALIVE);
+    if (client.connect(HOME_ASSISTANT_MQTT_CLIENT_ID, HOME_ASSISTANT_MQTT_USER, HOME_ASSISTANT_MQTT_PASSWORD))
     {
       Serial.println("INFO: connected");
     }
@@ -350,7 +332,7 @@ void reconnect() {
     }
   }
 }
-#endif // USE_HOME_ASSISTANT
+#endif // HAVE_WIFI
 
 void setup()
 {
@@ -403,11 +385,9 @@ void setup()
     Serial.println("Please upgrade the firmware");
   }
   connectToWifi();
-#endif
 
-#if USE_HOME_ASSISTANT
-    // init the MQTT connection
-  client.setServer(MQTT_SERVER_IP, MQTT_SERVER_PORT);
+  // init the MQTT connection
+  client.setServer(HOME_ASSISTANT_MQTT_SERVER_IP, HOME_ASSISTANT_MQTT_SERVER_PORT);
   // client.setCallback(callback);
   if (!client.connected()) {
     reconnect();
@@ -415,7 +395,7 @@ void setup()
   client.loop();
   haRegisterSensors();
   client.disconnect();
-#endif // USE_HOME_ASSISTANT
+#endif // HAVE_WIFI
 #endif // MOCK
 } // end setup
 
@@ -429,13 +409,13 @@ void loop()
   // Serial.println("Starting main loop");
   // digitalWrite(LED_BUILTIN, HIGH);
 
-#if HAVE_WIFI
+#ifdef ARDUINO_AVR_UNO_WIFI_REV2
   connectToWifi();
 #endif
 
   sensors.read(&sensorsData);
 
-#if USE_HOME_ASSISTANT
+#if HAVE_WIFI
 #ifndef MOCK
   if (!client.connected()) {
     reconnect();
@@ -447,10 +427,10 @@ void loop()
   Serial.println("INFO: Closing the MQTT connection");
   client.disconnect();
 #endif // MOCK
-#endif // USE_HOME_ASSISTANT
+#endif // HAVE_WIFI
 
 
-#if HAVE_WIFI
+#ifdef ARDUINO_AVR_UNO_WIFI_REV2
   //   // If no Wifi signal, try to reconnect it
   //  if ((WiFi.RSSI() == 0) && (wifiMulti.run() != WL_CONNECTED)) {
   //    Serial.println("Wifi connection lost");

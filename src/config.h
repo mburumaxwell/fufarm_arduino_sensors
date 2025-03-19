@@ -70,10 +70,6 @@
   #define SUPPORTS_CALIBRATION
 #endif
 
-#ifndef USE_HOME_ASSISTANT
-  #define USE_HOME_ASSISTANT 0
-#endif
-
 // Validation of the build configuration
 #if !defined(HAVE_TEMP_WET) && (defined(HAVE_EC) || defined(HAVE_PH))
   #pragma message "⚠️ Without DS18S20 (wet temperature), calibration of EC and PH sensors is done using air temperature which may not be as accurate!"
@@ -96,7 +92,7 @@
 #if defined(ARDUINO_AVR_UNO_WIFI_REV2)
   #define HAVE_WIFI 1
 #elif defined(ARDUINO_AVR_LEONARDO)
-  #undef USE_HOME_ASSISTANT
+  #define HAVE_WIFI 0
 #endif
 
 #if (defined(WIFI_ENTERPRISE_USERNAME) && !defined(WIFI_ENTERPRISE_PASSWORD)) || \
@@ -109,6 +105,11 @@
   #ifndef WIFI_ENTERPRISE_CA
     #define WIFI_ENTERPRISE_CA "" // default in the library
   #endif
+#endif
+
+// MQTT
+#ifndef HOME_ASSISTANT_MQTT_KEEPALIVE
+  #define HOME_ASSISTANT_MQTT_KEEPALIVE 90
 #endif
 
 #endif // CONFIG_H

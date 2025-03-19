@@ -68,7 +68,7 @@ For simplicity doing calibration and to allow you recalibrate on the fly, you ca
 
 ## Data Transmission
 
-The code base supports either sending data to Home Assistant (MQTT) or printing out JSON via Serial. To enable HomeAssistant, set `USE_HOME_ASSISTANT` to `1`. HomeAssistant is capable enough to replay the information to any other destination including InfluxDB (which we used to support in this repository).
+The code base supports either sending data to Home Assistant (MQTT) or printing out JSON via Serial. Data is sent to HomeAssistant, if the board has network support (e.g. WiFi). HomeAssistant is capable enough to replay the information to any other destination including InfluxDB (which we used to support in this repository).
 
 ## Spelling
 
