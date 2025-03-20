@@ -5,7 +5,8 @@ Code for Arduino Sensors
 This code is built for the following boards:
 
 - [Arduino Leonardo](https://store.arduino.cc/products/arduino-leonardo-with-headers)
-- [Arduino UNO Wifi R2](https://store.arduino.cc/products/arduino-uno-wifi-rev2)
+- [Arduino UNO R4 WiFi](https://store.arduino.cc/products/uno-r4-wifi)
+- [Arduino UNO WiFi R2](https://store.arduino.cc/products/arduino-uno-wifi-rev2)
 
 Other boards might be added with time, if need be. However, should you need to test on another board, [supported by PlatformIO](https://docs.platformio.org/en/latest/boards/index.html), the easiest way would be to add a new environment in the [platformio.ini](./platformio.ini) file. The current code base is built to work with Arduino which means choosing boards [supported by the Arduino platform](https://docs.platformio.org/en/latest/frameworks/arduino.html#boards) is easier.
 
@@ -31,11 +32,12 @@ There are a number of sensors used in the farm for different purposes.
 | EC       |                                | A2  | SENSORS_EC_PIN       | HAVE_EC                |
 | pH       |                                | A3  | SENSORS_PH_PIN       | HAVE_PH                |
 | Moisture |                                | A4  | SENSORS_MOISTURE_PIN | HAVE_MOISTURE          |
-| AHT20    | Humidity and Temperature (Air) | I2C | HAVE_AHT20           | HAVE_AHT20             |
 | DHT22    | Humidity and Temperature (Air) | 2   | SENSORS_DHT22_PIN    | HAVE_DHT22             |
 | SEN0217  | Flow Sensor                    | 3   | SENSORS_SEN0217_PIN  | HAVE_FLOW              |
 | DS18S20  | Temperature (Wet)              | 4   | SENSORS_DS18S20_PIN  | HAVE_TEMP_WET          |
 | SEN0204  | Water Level Sensor             | 5   | SENSORS_SEN0204_PIN  | HAVE_WATER_LEVEL_STATE |
+| AHT20    | Humidity and Temperature (Air) | I2C | HAVE_AHT20           | HAVE_AHT20             |
+| ENS160   | Air Quality & Multi Gas        | I2C | HAVE_ENS160          | HAVE_ENS160            |
 
 When you start using this, you might not have/need all of these. You can remove the ones you do not have/need by editing `build_flags` in [platformio.ini](./platformio.ini). For example, if you do not have pH sensor, you can remove the line containing `-DSENSORS_PH_PIN=A3`. By default, when a sensor is not enabled, the value is `-1` to signify invalid.
 

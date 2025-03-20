@@ -219,7 +219,7 @@ void haAnnounceSensor(String name, String type, bool isBinary, JsonDocument& pay
 void haRegisterSensors() {
   StaticJsonDocument<200> payload;
   char buffer[BUFFER_SIZE];
-  #ifdef HAVE_WATER_LEVEL_STATE
+#ifdef HAVE_WATER_LEVEL_STATE
   // https://www.home-assistant.io/integrations/binary_sensor/
   haAnnounceSensor(String("water_level"), String("moisture"), true, payload, buffer);
 #endif
@@ -229,6 +229,11 @@ void haRegisterSensors() {
 #if defined(HAVE_DHT22) || defined(HAVE_AHT20)
   haAnnounceSensor(String("temperature"), String("temperature"), false, payload, buffer);
   haAnnounceSensor(String("humidity"), String("humidity"), false, payload, buffer);
+#endif
+#if defined(HAVE_ENS160)
+  haAnnounceSensor(String("aqi"), String("aqi"), false, payload, buffer);
+  haAnnounceSensor(String("tvoc"), String("volatile_organic_compounds_parts"), false, payload, buffer);
+  haAnnounceSensor(String("ec02"), String("carbon_dioxide"), false, payload, buffer);
 #endif
 #ifdef HAVE_FLOW
   haAnnounceSensor(String("volume_flow_rate"), String("volume_flow_rate"), false, payload, buffer);
@@ -278,6 +283,17 @@ void haPublishSensor(String name, bool isBinary, String value){
     haPublishSensor(sensor, false, value);
     sensor = "humidity";
     value = (String)data->humidity;
+    haPublishSensor(sensor, false, value);
+#endif
+#if defined(HAVE_ENS160)
+    sensor = "aqi";
+    value = (String)sensorsData.airQuality.index;
+    haPublishSensor(sensor, false, value);
+    sensor = "tvoc";
+    value = (String)data->airQuality.tvoc;
+    haPublishSensor(sensor, false, value);
+    sensor = "ec02";
+    value = (String)data->airQuality.eco2;
     haPublishSensor(sensor, false, value);
 #endif
 
@@ -451,16 +467,39 @@ void loop()
 #if HAVE_WIFI
 #else
   // populate json
+#if defined(HAVE_DHT22) || defined(HAVE_AHT20)
   doc["tempair"] = sensorsData.temperature.air;
   doc["humidity"] = sensorsData.humidity;
+#endif
+#ifdef HAVE_ENS160
+  doc["aqi"] = sensorsData.airQuality.index;
+  doc["tvoc"] = sensorsData.airQuality.tvoc;
+  doc["ec02"] = sensorsData.airQuality.eco2;
+#endif
+#ifdef HAVE_TEMP_WET
   doc["tempwet"] = sensorsData.temperature.wet;
+#endif
+#ifdef HAVE_C02
   doc["co2"] = sensorsData.co2;
+#endif
+#ifdef HAVE_EC
   doc["ec"] = sensorsData.ec;
+#endif
+#ifdef HAVE_PH
   doc["ph"] = sensorsData.ph;
+#endif
+#ifdef HAVE_FLOW
   doc["flow"] = sensorsData.flow;
+#endif
+#ifdef HAVE_LIGHT
   doc["light"] = sensorsData.light;
+#endif
+#ifdef HAVE_MOISTURE
   doc["moisture"] = sensorsData.moisture;
+#endif
+#ifdef HAVE_WATER_LEVEL_STATE
   doc["water_level"] = sensorsData.waterLevelState;
+#endif
 
   serializeJson(doc, Serial);
   Serial.println();

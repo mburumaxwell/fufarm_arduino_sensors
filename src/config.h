@@ -83,11 +83,16 @@
   #error "Only one temperature and humidity sensor can be configured."
 #endif
 
+#if defined(HAVE_ENS160) && (!defined(HAVE_DHT22) && !defined(HAVE_AHT20))
+  #error "Air temperature and humidity are needed to ensure ENS160 works correctly! Use either DHT22 or AHT20"
+#endif
+
 #if !defined(HAVE_LIGHT) && !defined(HAVE_CO2) && \
     !defined(HAVE_EC) && !defined(HAVE_PH) && \
     !defined(HAVE_MOISTURE) && !defined(HAVE_DHT22) && \
     !defined(HAVE_FLOW) && !defined(HAVE_TEMP_WET) && \
     !defined(HAVE_WATER_LEVEL_STATE) && !defined(HAVE_AHT20) && \
+    !defined(HAVE_ENS160) && \
     !defined(MOCK)
   #error "At least one sensor must be configured unless mocking"
 #endif

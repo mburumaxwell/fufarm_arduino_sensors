@@ -23,6 +23,10 @@
 #include <DFRobot_AHT20.h>
 #endif
 
+#ifdef HAVE_ENS160
+#include <DFRobot_ENS160.h>
+#endif
+
 #include "config.h"
 
 struct FuFarmSensorsData
@@ -40,6 +44,20 @@ struct FuFarmSensorsData
   float ph;
   int moisture;
   bool waterLevelState;
+  struct FuFarmSensorsAirQuality
+  {
+    // air quality index
+    // https://www.home-assistant.io/integrations/waqi/
+    uint16_t index;
+
+    // Total Volatile Organic Compounds
+    // range: 0–65000, unit: ppb (parts per billion)
+    uint16_t tvoc;
+
+    // equivalent CO2 concentration
+    // range: 400–65000, unit: ppm (parts per million)
+    uint16_t eco2;
+  } airQuality;
 };
 
 class FuFarmSensors
@@ -57,6 +75,10 @@ private:
   DHTesp dht; // Temperature and Humidity
 #elif HAVE_AHT20
   DFRobot_AHT20 aht20; // Temperature and Humidity
+#endif
+
+#ifdef HAVE_ENS160
+  DFRobot_ENS160_I2C ens160; // Air Quality & MultiGas
 #endif
 
 #ifdef HAVE_TEMP_WET
@@ -91,6 +113,7 @@ private:
   uint8_t bufferIndex;
   bool cmdSerialDataAvailable();
   char *strupr(char *str);
+  uint16_t convertENS160AQItoHA(uint8_t indexRaw);
 };
 
 #endif // SENSORS_H
