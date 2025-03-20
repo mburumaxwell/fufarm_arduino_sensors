@@ -15,7 +15,7 @@
 
 #define KVALUEADDR 0x00
 
-FuFarmSensors::FuFarmSensors(void (*sen0217InterruptHandler)())
+FuFarmSensors::FuFarmSensors(void (*sen0217InterruptHandler)()) : ens160(&Wire, /* I2C Address */ 0x53)
 {
 }
 
@@ -25,6 +25,10 @@ FuFarmSensors::~FuFarmSensors()
 
 void FuFarmSensors::begin()
 {
+#if defined(HAVE_AHT20) || defined(HAVE_ENS160)
+  uint8_t status = -1, count = 0;
+#endif
+
 #ifdef HAVE_WATER_LEVEL_STATE
   pinMode(SENSORS_SEN0204_PIN, INPUT);
 #endif
@@ -32,8 +36,7 @@ void FuFarmSensors::begin()
 #ifdef HAVE_DHT22
   dht.setup(SENSORS_DHT22_PIN, DHTesp::DHT22);
 #elif HAVE_AHT20
-  uint8_t status;
-  int count = 0;
+  count = 0;
   while ((status = aht20.begin()) != 0)
   {
     Serial.print("AHT20 sensor initialisation failed. Error status: ");
@@ -42,6 +45,22 @@ void FuFarmSensors::begin()
     if (count > 5)
     {
       Serial.println("Could not initialise AHT20 sensor - continuing without it");
+      break;
+    }
+    delay(1000);
+  }
+#endif
+
+#ifdef HAVE_ENS160
+  count = 0;
+  while ((status = ens160.begin()) != NO_ERR)
+  {
+    Serial.print("ENS160 sensor initialisation failed. Error status: ");
+    Serial.println(status);
+    count++;
+    if (count > 5)
+    {
+      Serial.println("Could not initialise ENS160 sensor - continuing without it");
       break;
     }
     delay(1000);
@@ -178,6 +197,30 @@ void FuFarmSensors::read(FuFarmSensorsData *dest)
 #else
   airTemperature = dest->temperature.air = -1;
   dest->humidity = -1;
+#endif
+
+#ifdef HAVE_ENS160
+  if (dest->temperature.air != -1 && dest->humidity != -1)
+  {
+    ens160.setTempAndHum(dest->temperature.air, dest->humidity);
+  }
+  else
+  {
+    Serial.println("Could not set air temperature and humidity for ENS160. Its values might not be accurate.");
+  }
+
+  uint8_t status = ens160.getENS160Status();
+  if (status != DFRobot_ENS160::eSensorStatus_t::eNormalOperation)
+  {
+    Serial.print("ENS160 is not yet in normal operation mode (initial phase can take upto 1 hour). Current mode: ");
+    Serial.println(status);
+  }
+  else
+  {
+    dest->airQuality.index = convertENS160AQItoHA(ens160.getAQI());
+    dest->airQuality.tvoc = ens160.getTVOC();
+    dest->airQuality.eco2 = ens160.getECO2();
+  }
 #endif
 
   dest->flow = readFlow();
@@ -386,4 +429,16 @@ char *FuFarmSensors::strupr(char *str)
     ptr++;
   }
   return str;
+}
+
+// https://www.home-assistant.io/integrations/waqi/
+uint16_t FuFarmSensors::convertENS160AQItoHA(uint8_t indexRaw) {
+  switch (indexRaw) {
+    case 1: return 25;   // Excellent -> US AQI 0-50 (mapped to midpoint)
+    case 2: return 75;   // Good      -> US AQI 51-100
+    case 3: return 125;  // Moderate  -> US AQI 101-150
+    case 4: return 175;  // Poor      -> US AQI 151-200
+    case 5: return 250;  // Unhealthy -> US AQI 201-300+
+    default: return -1;  // Invalid value
+  }
 }
