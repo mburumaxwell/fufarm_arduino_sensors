@@ -5,6 +5,10 @@ on:
     - cron: '0 2 2 * *' # Runs at 01:00 on the second day of the month
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   Updates:
     runs-on: ubuntu-latest
