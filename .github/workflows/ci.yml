@@ -55,6 +55,8 @@ jobs:
           mkdir -p firmware
           cp ${{ github.workspace }}/.pio/build/leonardo/firmware.elf ${{ github.workspace }}/firmware/leonardo.elf
           cp ${{ github.workspace }}/.pio/build/leonardo/firmware.hex ${{ github.workspace }}/firmware/leonardo.hex
+          cp ${{ github.workspace }}/.pio/build/uno_r4_wifi/firmware.elf ${{ github.workspace }}/firmware/uno_r4_wifi.elf
+          cp ${{ github.workspace }}/.pio/build/uno_r4_wifi/firmware.bin ${{ github.workspace }}/firmware/uno_r4_wifi.bin
           cp ${{ github.workspace }}/.pio/build/uno_wifi_rev2/firmware.elf ${{ github.workspace }}/firmware/uno_wifi_rev2.elf
           cp ${{ github.workspace }}/.pio/build/uno_wifi_rev2/firmware.hex ${{ github.workspace }}/firmware/uno_wifi_rev2.hex
 

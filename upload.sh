@@ -1,7 +1,7 @@
 #!/bin/bash
 export PATH=/opt/platformio/bin:$PATH
 
-usage="Usage $0 leonardo|uno_wifi_rev2";
+usage="Usage $0 leonardo|uno_r4_wifi|uno_wifi_rev2";
 
 if [ $# -ne 1 ]; then
     echo $usage
@@ -11,6 +11,9 @@ fi
 if [ $0 = "leonardo" ]
 then
     board=leonardo
+elif [ $0 = "uno_r4_wifi" ]
+then
+    board=uno_r4_wifi
 elif [ $0 = "uno_wifi_rev2" ]
 then
     board=uno_wifi_rev2

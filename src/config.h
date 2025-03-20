@@ -40,11 +40,7 @@
   // For this flow sensor, only interrupt pins should be used. Configured on a rising edge
   // https://reference.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/
 
-  #if defined(ARDUINO_AVR_UNO_WIFI_REV2) // all digital pins
-    #if SENSORS_SEN0217_PIN < 0 || SENSORS_SEN0217_PIN > 13
-      #error "Pin configured for SEN0217 (flow sensor) must support interrupts on UNO WIFI REV2."
-    #endif
-  #elif defined(ARDUINO_AVR_LEONARDO) // only 0, 1, 2, 3, 7
+  #if defined(ARDUINO_AVR_LEONARDO) // only 0, 1, 2, 3, 7
     #if SENSORS_SEN0217_PIN == 0
     #elif SENSORS_SEN0217_PIN == 1
     #elif SENSORS_SEN0217_PIN == 2
@@ -52,6 +48,14 @@
     #elif SENSORS_SEN0217_PIN == 7
     #else
       #error "Pin configured for SEN0217 (flow sensor) must support interrupts on LEONARDO."
+    #endif
+  #elif defined(ARDUINO_UNOR4_WIFI) // all digital pins
+    #if SENSORS_SEN0217_PIN < 0 || SENSORS_SEN0217_PIN > 13
+      #error "Pin configured for SEN0217 (flow sensor) must support interrupts on UNO WIFI REV2."
+    #endif
+  #elif defined(ARDUINO_AVR_UNO_WIFI_REV2) // only 2 or 3
+    #if SENSORS_SEN0217_PIN != 2 && SENSORS_SEN0217_PIN != 3
+      #error "Pin configured for SEN0217 (flow sensor) must support interrupts on UNO R4 WIFI."
     #endif
   #else // any other board we have not validated
     #pragma message "⚠️ Unable to validate if pin configured for SEN0217 (flow sensor) allows interrupts required."
@@ -89,10 +93,10 @@
 #endif
 
 // WiFi
-#if defined(ARDUINO_AVR_UNO_WIFI_REV2)
-  #define HAVE_WIFI 1
-#elif defined(ARDUINO_AVR_LEONARDO)
+#if defined(ARDUINO_AVR_LEONARDO)
   #define HAVE_WIFI 0
+#elif defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_AVR_UNO_WIFI_REV2)
+  #define HAVE_WIFI 1
 #endif
 
 #if (defined(WIFI_ENTERPRISE_USERNAME) && !defined(WIFI_ENTERPRISE_PASSWORD)) || \
@@ -107,7 +111,13 @@
   #endif
 #endif
 
-// MQTT
+#if defined(ARDUINO_UNOR4_WIFI)
+  #if defined(WIFI_ENTERPRISE_USERNAME) || defined(WIFI_ENTERPRISE_PASSWORD)
+    #error "Arduino Uno R4 WiFi (via WiFiS3 library) does not support enterprise WiFi."
+  #endif
+#endif
+
+// Home Assistant
 #ifndef HOME_ASSISTANT_MQTT_KEEPALIVE
   #define HOME_ASSISTANT_MQTT_KEEPALIVE 90
 #endif

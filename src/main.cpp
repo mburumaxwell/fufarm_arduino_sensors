@@ -1,6 +1,8 @@
 #include "config.h"
 
-#if defined(ARDUINO_AVR_UNO_WIFI_REV2)
+#if defined(ARDUINO_UNOR4_WIFI)
+#include <WiFiS3.h>
+#elif defined(ARDUINO_AVR_UNO_WIFI_REV2)
 /*
  * Need to update the firmware on the Wifi Uno Rev2 and upload the SSL certificate for INFLUXDB_SERVER
  * Getting this to work required multiple attempts and deleting the arduino.cc certificate. Instructions
@@ -34,12 +36,12 @@ PubSubClient client(wifiClient);
 StaticJsonDocument<200> doc;
 #endif
 
-#ifdef HAVE_FLOW
 void sen0217InterruptHandler() // this exists because there is no way to pass an instance method to the interrupt
 {
+#ifdef HAVE_FLOW
   sensors.sen0217Interrupt();
-}
 #endif
+}
 
 #if HAVE_WIFI
 void printMacAddress(byte mac[])
@@ -318,14 +320,19 @@ void reconnect() {
     Serial.println("INFO: Attempting MQTT connection...");
     // Attempt to connect
     client.setKeepAlive(HOME_ASSISTANT_MQTT_KEEPALIVE);
-    if (client.connect(HOME_ASSISTANT_MQTT_CLIENT_ID, HOME_ASSISTANT_MQTT_USER, HOME_ASSISTANT_MQTT_PASSWORD))
+#ifdef HOME_ASSISTANT_MQTT_USER
+    bool connected = client.connect(HOME_ASSISTANT_MQTT_CLIENT_ID, HOME_ASSISTANT_MQTT_USER, HOME_ASSISTANT_MQTT_PASSWORD);
+#else
+    bool connected = client.connect(HOME_ASSISTANT_MQTT_CLIENT_ID);
+#endif
+    if (connected)
     {
       Serial.println("INFO: connected");
     }
     else
     {
       Serial.print("ERROR: failed, rc=");
-      Serial.print(client.state());
+      Serial.println(client.state());
       Serial.println("DEBUG: try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
@@ -342,10 +349,13 @@ void setup()
   // https://www.arduino.cc/reference/en/language/functions/analog-io/analogreference/
 #if defined(ARDUINO_AVR_LEONARDO)
   analogReference(DEFAULT); // Set the default voltage of the reference voltage
+#elif defined(ARDUINO_UNOR4_WIFI)
+  analogReference(AR_DEFAULT); // AR_DEFAULT: 5V on the Uno R4 WiFi
+  analogReadResolution(14); //change to 14-bit resolution
 #elif defined(ARDUINO_AVR_UNO_WIFI_REV2)
   analogReference(VDD); // VDD: Vdd of the ATmega4809. 5V on the Uno WiFi Rev2
 #else // any other board we have not validated
-  #pragma message "⚠️ Unable to set analogue reference voltage. Board unknown"
+  #pragma message "⚠️ Unable to set analogue reference voltage. Board not supported."
 #endif
 
   sensors.begin();
@@ -437,6 +447,8 @@ void loop()
   //  }
   // Need to shutdown wifi due to bug in Wifi: https://github.com/arduino-libraries/WiFiNINA/issues/103 | https://github.com/arduino-libraries/WiFiNINA/issues/207
   shutdownWifi();
+#endif
+#if HAVE_WIFI
 #else
   // populate json
   doc["tempair"] = sensorsData.temperature.air;

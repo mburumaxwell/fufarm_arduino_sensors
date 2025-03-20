@@ -3,8 +3,13 @@
 #include "sensors.h"
 
 // Will be different depending on the reference voltage
+#ifdef ARDUINO_UNOR4_WIFI
+#define ANALOG_REFERENCE_MILLI_VOLTS 5000
+#define ANALOG_MAX_VALUE 16384 // 14 bit ADC
+#else
 #define ANALOG_REFERENCE_MILLI_VOLTS 5000
 #define ANALOG_MAX_VALUE 1024 // 10 bit ADC
+#endif
 // to avoid possible loss of precision, multiply before dividing
 #define ANALOG_READ_MILLI_VOLTS(pin) ((analogRead(pin) * ANALOG_REFERENCE_MILLI_VOLTS) / ANALOG_MAX_VALUE)
 
@@ -31,12 +36,12 @@ void FuFarmSensors::begin()
   int count = 0;
   while ((status = aht20.begin()) != 0)
   {
-    Serial.print("AHT20 sensor initialisation failed. error status : ");
+    Serial.print("AHT20 sensor initialisation failed. Error status: ");
     Serial.println(status);
     count++;
     if (count > 5)
     {
-      Serial.print("Could not initialise AHT20 sensor - continuing without it");
+      Serial.println("Could not initialise AHT20 sensor - continuing without it");
       break;
     }
     delay(1000);
