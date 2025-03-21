@@ -16,8 +16,13 @@
 
 #define KVALUEADDR 0x00
 
+#ifdef HAVE_ENS160
 FuFarmSensors::FuFarmSensors(void (*sen0217InterruptHandler)()) : ens160(&Wire, /* I2C Address */ 0x53)
+#else
+FuFarmSensors::FuFarmSensors(void (*sen0217InterruptHandler)())
+#endif
 {
+  this->sen0217InterruptHandler = sen0217InterruptHandler;
 }
 
 FuFarmSensors::~FuFarmSensors()
