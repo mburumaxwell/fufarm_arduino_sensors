@@ -201,7 +201,7 @@ void haAnnounceSensor(String name, String type, bool isBinary, JsonDocument& pay
   payload["state_topic"] = state_topic;
   payload["unique_id"] = sensor_name;
   // payload["unit_of_measurement"] = measurement;
-  payload["expire_after"] = (String)(SAMPLE_WINDOW * 2);
+  payload["expire_after"] = (String)(SAMPLE_WINDOW_MILLIS * 2);
   serializeJson(payload, buffer, BUFFER_SIZE);
   String info = "Announcing sensor: " + config_topic + "\n" + buffer;
   Serial.println(info);
@@ -498,5 +498,5 @@ void loop()
   Serial.println();
   Serial.flush();
 #endif
-  delay(SAMPLE_WINDOW);
+  delay(SAMPLE_WINDOW_MILLIS);
 } // end loop
