@@ -315,9 +315,9 @@ float FuFarmSensors::readFlow()
    * From YF-S201 manual:
    * Pulse Characteristic:F=7Q(L/MIN).
    * 2L/MIN=16HZ 4L/MIN=32.5HZ 6L/MIN=49.3HZ 8L/MIN=65.5HZ 10L/MIN=82HZ
-   * sample_window is in milli seconds, so hz is pulseCount * 1000 / SAMPLE_WINDOW
+   * sample_window is in milli seconds, so hz is pulseCount * 1000 / SAMPLE_WINDOW_MILLIS
    * */
-  float hertz = (float)(pulseCount * 1000.0) / SAMPLE_WINDOW;
+  float hertz = (float)(pulseCount * 1000.0) / SAMPLE_WINDOW_MILLIS;
   pulseCount = 0; // reset flow counter
   return hertz / 7.0;
 #else
