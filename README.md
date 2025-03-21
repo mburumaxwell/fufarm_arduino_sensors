@@ -21,6 +21,27 @@ You can comment/uncomment, one of the lines under `platformio` in the configurat
 | Clean (default environments)n |                                                       | `pio run --target fullclean`                          |
 | Clean (specific environment)  | `pio run --environment {env-name} --target fullclean` | `pio run --environment leonardo --target fullclean`   |
 
+## WiFi
+
+Boards that support WiFi are generally easier to work with because they transmit directly to Home Assistant. The WiFi network you connect to is controlled by the common `build_flags_wifi` in `platformio.ini`.
+
+- To connect to a public network, you only need to configure `-DWIFI_SSID=\"<your-network>\"` for example, `-DWIFI_SSID=\"Airport_Free_WiFi\"
+- To connect to a simple WPA2 network, you need to set both `-DWIFI_SSID=\"<your-network>\"` and `-DWIFI_PASSPHRASE=\"<your-value>\"`
+- To connect to an 802.1x or enterprise network, you need to set `; -DWIFI_PASSPHRASE=\"<your-value>\"`, `-DWIFI_ENTERPRISE_USERNAME=\"<your-value>\"`, and `-DWIFI_ENTERPRISE_PASSWORD=\"<your-value>\"`. Optionally, you may need `-DWIFI_ENTERPRISE_IDENTITY=\"<your-value>\"` or `-DWIFI_ENTERPRISE_CA=\"<your-value>\"`. This is for networks such as those used at hospitals for staff members, universities, shared accommodation or maybe your workplace.
+
+> [!NOTE]
+>
+> 1. Networks with captive portals do not work.
+> 2. Networks with spaces need to be escaped appropriately. For example, to connect to a network named `ASK4 Wireless`, you should use `-DWIFI_SSID=\"ASK4\ Wireless\"`. To connect to a network named `Jen's iPhone`, you should use `-DWIFI_SSID=\"Jen\'s\ iPhone\"`
+> 3. Arduino UNO R4 WiFi, does not (yet) support enterprise WiFi.
+
+### WiFi Firmware
+
+The WiFi modules may need firmware updates to work properly such as when using an older board or you have not used a particular board for a while. In some cases, multiple attempts may be required. See:
+
+- [Arduino UNO R4 WiFi](https://support.arduino.cc/hc/en-us/articles/9670986058780-Update-the-connectivity-module-firmware-on-UNO-R4-WiFi)
+- [Arduino UNO WiFi Rev2](https://github.com/xcape-io/ArduinoProps/blob/master/help/WifiNinaFirmware.md)
+
 ## Sensors
 
 There are a number of sensors used in the farm for different purposes.

@@ -3,13 +3,6 @@
 #if defined(ARDUINO_UNOR4_WIFI)
 #include <WiFiS3.h>
 #elif defined(ARDUINO_AVR_UNO_WIFI_REV2)
-/*
- * Need to update the firmware on the Wifi Uno Rev2 and upload the SSL certificate for INFLUXDB_SERVER
- * Getting this to work required multiple attempts and deleting the arduino.cc certificate. Instructions
- * are available at: https://github.com/xcape-io/ArduinoProps/blob/master/help/WifiNinaFirmware.md
- *
- * */
-// https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/wifi.html#wi-fi-reason-code
 #include <WiFiNINA.h>
 #endif
 
@@ -377,7 +370,7 @@ void setup()
   sensors.begin();
 
   // if calibration toggle is shorted then we are in calibration mode
-  #ifdef SUPPORTS_CALIBRATION
+#ifdef SUPPORTS_CALIBRATION
   pinMode(CALIBRATION_TOGGLE_PIN, INPUT_PULLUP);
   calibrationMode = digitalRead(CALIBRATION_TOGGLE_PIN) == 0;
   if (calibrationMode) {
