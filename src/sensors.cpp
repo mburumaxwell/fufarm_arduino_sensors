@@ -22,7 +22,9 @@ FuFarmSensors::FuFarmSensors(void (*sen0217InterruptHandler)()) : ens160(&Wire, 
 FuFarmSensors::FuFarmSensors(void (*sen0217InterruptHandler)())
 #endif
 {
+#ifdef HAVE_FLOW
   this->sen0217InterruptHandler = sen0217InterruptHandler;
+#endif
 }
 
 FuFarmSensors::~FuFarmSensors()
