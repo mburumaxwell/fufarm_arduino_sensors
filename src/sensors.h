@@ -1,6 +1,7 @@
 #ifndef SENSORS_H
 #define SENSORS_H
 
+#include <stdint.h>
 #include "config.h"
 
 #ifdef HAVE_EC
