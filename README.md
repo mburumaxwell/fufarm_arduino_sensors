@@ -32,7 +32,7 @@ Boards that support WiFi are generally easier to work with because they transmit
 > [!NOTE]
 >
 > 1. Networks with captive portals do not work.
-> 2. Networks with spaces need to be escaped appropriately. For example, to connect to a network named `ASK4 Wireless`, you should use `-DWIFI_SSID=\"ASK4\ Wireless\"`. To connect to a network named `Jen's iPhone`, you should use `-DWIFI_SSID=\"Jen\'s\ iPhone\"`
+> 2. Networks with spaces need to be escaped appropriately. For example, to connect to a network named `ASK4 Wireless`, you should use `-DWIFI_SSID=\"ASK4\ Wireless\"`. To connect to a network named `Jen's iPhone`, you should use `-DWIFI_SSID=\"Jen\'s\ iPhone\"`. At times, the device is unable to connect when there are special characters, renaming your phone should fix it, e.g `Jen's iphone` -> `JensiPhone`.
 > 3. Arduino UNO R4 WiFi, does not (yet) support enterprise WiFi.
 
 ### WiFi Firmware

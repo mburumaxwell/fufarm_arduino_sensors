@@ -20,6 +20,9 @@ on:
       - .github/**
       - '!.github/workflows/ci.yml'
 
+env:
+  CI: 1 # Needed for PlatformIO? https://docs.platformio.org/en/stable/envvars.html#envvar-CI
+
 jobs:
   Build:
     runs-on: ubuntu-latest
