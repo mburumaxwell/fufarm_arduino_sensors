@@ -93,6 +93,49 @@ For simplicity doing calibration and to allow you recalibrate on the fly, you ca
 
 The code base supports either sending data to Home Assistant (MQTT) or printing out JSON via Serial. Data is sent to HomeAssistant, if the board has network support (e.g. WiFi). HomeAssistant is capable enough to replay the information to any other destination including InfluxDB (which we used to support in this repository).
 
+## Testing MQTT without a Home Assistant setup
+
+Sometimes, you may not have direct access to a Home Assistant setup and you want to test the MQTT communication, you can setup a local broker using mosquitto.
+
+<details>
+<summary>Example:</summary>
+
+Install it using `brew install mosquitto` then you can run it using `mosquitto -v -c mosquitto.conf`. More instructions can be found on the [official docs website](https://mosquitto.org/documentation/).
+
+If your machine is connected to a different network it does not allow incoming traffic for security reasons, you can tunnel the connection via [ngrok](https://ngrok.com). In another terminal window/tab install using `brew install ngrok`, setup auth using instructions on your account e.g. `ngrok config add-authtoken <some-token>` then run `ngrok tcp 1883`. You will then see an output such as:
+
+```txt
+Forwarding                    tcp://6.tcp.eu.ngrok.io:14333 -> localhost:1883
+```
+
+You can then change your `platformio.ini` settings to match this. In this case, `-DHOME_ASSISTANT_MQTT_SERVER_IP=\"6.tcp.eu.ngrok.io\"` and `-DHOME_ASSISTANT_MQTT_SERVER_PORT=14333`.
+
+Once you upload, the code and the connection happens, in the mosquitto window you will see output that looks something like:
+
+```txt
+1742675822: mosquitto version 2.0.21 starting
+1742675822: Config loaded from mosquitto.conf.
+1742675822: Opening ipv6 listen socket on port 1883.
+1742675822: Opening ipv4 listen socket on port 1883.
+1742675822: mosquitto version 2.0.21 running
+1742675849: New connection from ::1:61910 on port 1883.
+1742675849: New client connected from ::1:61910 as ard1 (p2, c1, k90).
+1742675849: No will message specified.
+1742675849: Sending CONNACK to ard1 (0, 0)
+1742675849: Received PUBLISH from ard1 (d0, q0, r1, m0, 'homeassistant/sensor/ard1_illuminance/config', ... (171 bytes))
+1742675849: Received DISCONNECT from ard1
+1742675849: Client ard1 disconnected.
+1742675849: New connection from ::1:61911 on port 1883.
+1742675849: New client connected from ::1:61911 as ard1 (p2, c1, k90).
+1742675849: No will message specified.
+1742675849: Sending CONNACK to ard1 (0, 0)
+1742675849: Received PUBLISH from ard1 (d0, q0, r1, m0, 'homeassistant/sensor/ard1_illuminance/state', ... (3 bytes))
+1742675849: Received DISCONNECT from ard1
+1742675849: Client ard1 disconnected.
+```
+
+</details>
+
 ## Spelling
 
 The code is checked for spelling mistakes (happens more often that one might expect). It happens automatically on push to main or when a PR is created.
