@@ -16,19 +16,30 @@
 
 #define KVALUEADDR 0x00
 
+FuFarmSensors* FuFarmSensors::_instance = nullptr;
+
+#ifdef HAVE_FLOW
+static void sen0217InterruptHandler()
+{
+  // An instance will always exist because the interrupt is attached when an instance method is called.
+  // There is therefore no need to check if it is null.
+  // The function is also static meaning it cannot be referenced outside this file.
+  FuFarmSensors::instance()->sen0217Interrupt();
+}
+#endif
+
 #ifdef HAVE_ENS160
-FuFarmSensors::FuFarmSensors(void (*sen0217InterruptHandler)()) : ens160(&Wire, /* I2C Address */ 0x53)
+FuFarmSensors::FuFarmSensors() : ens160(&Wire, /* I2C Address */ 0x53)
 #else
-FuFarmSensors::FuFarmSensors(void (*sen0217InterruptHandler)())
+FuFarmSensors::FuFarmSensors()
 #endif
 {
-#ifdef HAVE_FLOW
-  this->sen0217InterruptHandler = sen0217InterruptHandler;
-#endif
+  _instance = this;
 }
 
 FuFarmSensors::~FuFarmSensors()
 {
+  _instance = nullptr;
 }
 
 void FuFarmSensors::begin()
@@ -77,10 +88,7 @@ void FuFarmSensors::begin()
 
 #ifdef HAVE_FLOW
   pulseCount = 0;
-  if (sen0217InterruptHandler != nullptr)
-  {
-    attachInterrupt(digitalPinToInterrupt(SENSORS_SEN0217_PIN), sen0217InterruptHandler, RISING);
-  }
+  attachInterrupt(digitalPinToInterrupt(SENSORS_SEN0217_PIN), sen0217InterruptHandler, RISING);
 #endif
 
 #ifdef HAVE_EC

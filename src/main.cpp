@@ -11,8 +11,7 @@
 
 #define BUFFER_SIZE 256
 
-extern void sen0217InterruptHandler(); // defined later in the file
-FuFarmSensors sensors(sen0217InterruptHandler);
+FuFarmSensors sensors;
 FuFarmSensorsData sensorsData;
 static boolean calibrationMode = false;
 
@@ -28,13 +27,6 @@ PubSubClient client(wifiClient);
 #else
 StaticJsonDocument<200> doc;
 #endif
-
-void sen0217InterruptHandler() // this exists because there is no way to pass an instance method to the interrupt
-{
-#ifdef HAVE_FLOW
-  sensors.sen0217Interrupt();
-#endif
-}
 
 #if HAVE_WIFI
 void printMacAddress(byte mac[])

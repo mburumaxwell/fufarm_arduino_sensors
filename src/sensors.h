@@ -63,12 +63,18 @@ struct FuFarmSensorsData
 class FuFarmSensors
 {
 public:
-  FuFarmSensors(void (*sen0217InterruptHandler)() = nullptr);
+  FuFarmSensors();
   ~FuFarmSensors();
   void begin();                                           // initialization
   void calibration(unsigned long readIntervalMs = 1000U); // calibration, should be called in a loop, ideally a config mode
   void read(FuFarmSensorsData *dest);                     // read all sensor data
   void sen0217Interrupt();                                // should be called from the interrupt handler passed in the constructor
+
+  /**
+   * Returns existing instance (singleton) of the FuFarmSensors class.
+   * It may be a null pointer if the FuFarmSensors object was never constructed or it was destroyed.
+   */
+  inline static FuFarmSensors *instance() { return _instance; }
 
 private:
 #ifdef HAVE_DHT22
@@ -95,7 +101,6 @@ private:
 
 #ifdef HAVE_FLOW
   volatile int pulseCount; // Flow Sensor
-  void (*sen0217InterruptHandler)();
 #endif
 
 private:
@@ -114,6 +119,9 @@ private:
   bool cmdSerialDataAvailable();
   char *strupr(char *str);
   uint16_t convertENS160AQItoHA(uint8_t indexRaw);
+
+  /// Living instance of the FuFarmSensors class. It can be nullptr.
+  static FuFarmSensors *_instance;
 };
 
 #endif // SENSORS_H
