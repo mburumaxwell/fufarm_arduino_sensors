@@ -49,7 +49,7 @@ There are a number of sensors used in the farm for different purposes.
 | Sensor   | Purpose                        | Pin | Flag                 | Macro                  |
 | -------- | ------------------------------ | --- | -------------------- | ---------------------- |
 | Light    |                                | A0  | SENSORS_LIGHT_PIN    | HAVE_LIGHT             |
-| C02      |                                | A1  | SENSORS_CO2_PIN      | HAVE_CO2               |
+| CO2      |                                | A1  | SENSORS_CO2_PIN      | HAVE_CO2               |
 | EC       |                                | A2  | SENSORS_EC_PIN       | HAVE_EC                |
 | pH       |                                | A3  | SENSORS_PH_PIN       | HAVE_PH                |
 | Moisture |                                | A4  | SENSORS_MOISTURE_PIN | HAVE_MOISTURE          |
@@ -125,7 +125,7 @@ If your machine is connected to a different network it does not allow incoming t
 Forwarding                    tcp://6.tcp.eu.ngrok.io:14333 -> localhost:1883
 ```
 
-You can then change your `platformio.ini` settings to match this. In this case, `-DHOME_ASSISTANT_MQTT_SERVER_IP=\"6.tcp.eu.ngrok.io\"` and `-DHOME_ASSISTANT_MQTT_SERVER_PORT=14333`.
+You can then change your `platformio.ini` settings to match this. In this case, `-DHOME_ASSISTANT_MQTT_HOST=\"6.tcp.eu.ngrok.io\"` and `-DHOME_ASSISTANT_MQTT_PORT=14333`.
 
 </details>
 <br/>
@@ -139,20 +139,15 @@ Once you upload, the code and the connection happens, in the mosquitto window yo
 1742675822: Opening ipv6 listen socket on port 1883.
 1742675822: Opening ipv4 listen socket on port 1883.
 1742675822: mosquitto version 2.0.21 running
-1742675849: New connection from ::1:61910 on port 1883.
-1742675849: New client connected from ::1:61910 as ard1 (p2, c1, k90).
-1742675849: No will message specified.
-1742675849: Sending CONNACK to ard1 (0, 0)
-1742675849: Received PUBLISH from ard1 (d0, q0, r1, m0, 'homeassistant/sensor/ard1_illuminance/config', ... (171 bytes))
-1742675849: Received DISCONNECT from ard1
-1742675849: Client ard1 disconnected.
-1742675849: New connection from ::1:61911 on port 1883.
-1742675849: New client connected from ::1:61911 as ard1 (p2, c1, k90).
-1742675849: No will message specified.
-1742675849: Sending CONNACK to ard1 (0, 0)
-1742675849: Received PUBLISH from ard1 (d0, q0, r1, m0, 'homeassistant/sensor/ard1_illuminance/state', ... (3 bytes))
-1742675849: Received DISCONNECT from ard1
-1742675849: Client ard1 disconnected.
+1742756031: New connection from ::1:54640 on port 1883.
+1742756031: New client connected from ::1:54640 as 48ca435e0080 (p2, c1, k90).
+1742756031: No will message specified.
+1742756031: Sending CONNACK to 48ca435e0080 (0, 0)
+1742756031: Received PUBLISH from 48ca435e0080 (d0, q0, r1, m0, 'homeassistant/sensor/48ca435e0080/temperature/config', ... (205 bytes))
+1742756032: Received PUBLISH from 48ca435e0080 (d0, q0, r1, m0, 'homeassistant/sensor/48ca435e0080/humidity/config', ... (196 bytes))
+1742756032: Received PUBLISH from 48ca435e0080 (d0, q0, r1, m0, 'homeassistant/sensor/48ca435e0080/aqi/config', ... (181 bytes))
+1742756032: Received PUBLISH from 48ca435e0080 (d0, q0, r1, m0, 'homeassistant/sensor/48ca435e0080/tvoc/config', ... (212 bytes))
+1742756033: Received PUBLISH from 48ca435e0080 (d0, q0, r1, m0, 'homeassistant/sensor/48ca435e0080/eco2/config', ... (194 bytes))
 ```
 </details>
 
