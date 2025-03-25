@@ -143,6 +143,9 @@ void FuFarmHomeAssistant::setValues(FuFarmSensorsData *source)
   tvoc.setValue(source->airQuality.tvoc);
   eco2.setValue(source->airQuality.eco2);
 #endif
+#ifdef HAVE_FLOW
+  flow.setValue(source->flow);
+#endif
 #ifdef HAVE_TEMP_WET
   liquidtemp.setValue(source->temperature.wet);
 #endif
