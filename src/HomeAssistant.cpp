@@ -145,40 +145,40 @@ void FuFarmHomeAssistant::maintain()
   mqtt.loop();
 }
 
-void FuFarmHomeAssistant::setValues(FuFarmSensorsData *source)
+void FuFarmHomeAssistant::setValues(FuFarmSensorsData *source, const bool force)
 {
 #ifdef HAVE_WATER_LEVEL_STATE
-  waterLevel.setState(source->waterLevelState);
+  waterLevel.setState(source->waterLevelState, force);
 #endif
 #ifdef HAVE_LIGHT
-  light.setValue(source->light);
+  light.setValue(source->light, force);
 #endif
 #if defined(HAVE_DHT22) || defined(HAVE_AHT20)
-  temperature.setValue(source->temperature.air);
-  humidity.setValue(source->humidity);
+  temperature.setValue(source->temperature.air, force);
+  humidity.setValue(source->humidity, force);
 #endif
 #ifdef HAVE_ENS160
-  aqi.setValue(source->airQuality.index);
-  tvoc.setValue(source->airQuality.tvoc);
-  eco2.setValue(source->airQuality.eco2);
+  aqi.setValue(source->airQuality.index, force);
+  tvoc.setValue(source->airQuality.tvoc, force);
+  eco2.setValue(source->airQuality.eco2, force);
 #endif
 #ifdef HAVE_FLOW
-  flow.setValue(source->flow);
+  flow.setValue(source->flow, force);
 #endif
 #ifdef HAVE_TEMP_WET
-  liquidtemp.setValue(source->temperature.wet);
+  liquidtemp.setValue(source->temperature.wet, force);
 #endif
 #ifdef HAVE_CO2
-  co2.setValue(source->co2);
+  co2.setValue(source->co2, force);
 #endif
 #ifdef HAVE_EC
-  ec.setValue(source->ec);
+  ec.setValue(source->ec, force);
 #endif
 #ifdef HAVE_PH
-  ph.setValue(source->ph);
+  ph.setValue(source->ph, force);
 #endif
 #ifdef HAVE_MOISTURE
-  moisture.setValue(source->moisture);
+  moisture.setValue(source->moisture, force);
 #endif
 }
 

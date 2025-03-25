@@ -72,8 +72,9 @@ public:
    * be the same from time to time.
    *
    * @param source All values for configured sensors.
+   * @param force Forces to update the state without comparing it to a previous known state.
    */
-  void setValues(FuFarmSensorsData *source);
+  void setValues(FuFarmSensorsData *source, const bool force = true);
 
 private:
   HADevice device;
