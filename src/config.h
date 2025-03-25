@@ -1,7 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-// #define MOCK ; // Uncomment to skip wifi connection for testing sensors
+// // Uncomment to skip WiFi connection for testing sensors
+// #define HAVE_WIFI 0
 
 #ifdef SENSORS_LIGHT_PIN
   #define HAVE_LIGHT
@@ -85,16 +86,17 @@
     !defined(HAVE_MOISTURE) && !defined(HAVE_DHT22) && \
     !defined(HAVE_FLOW) && !defined(HAVE_TEMP_WET) && \
     !defined(HAVE_WATER_LEVEL_STATE) && !defined(HAVE_AHT20) && \
-    !defined(HAVE_ENS160) && \
-    !defined(MOCK)
-  #error "At least one sensor must be configured unless mocking"
+    !defined(HAVE_ENS160)
+  #error "At least one sensor must be configured"
 #endif
 
 // WiFi
-#if defined(ARDUINO_AVR_LEONARDO)
-  #define HAVE_WIFI 0
-#elif defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_AVR_UNO_WIFI_REV2)
+#ifndef HAVE_WIFI
+#if defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_AVR_UNO_WIFI_REV2)
   #define HAVE_WIFI 1
+#else
+  #define HAVE_WIFI 0
+#endif
 #endif
 
 #if (defined(WIFI_ENTERPRISE_USERNAME) && !defined(WIFI_ENTERPRISE_PASSWORD)) || \
@@ -116,7 +118,18 @@
 #endif
 
 // Home Assistant
-#ifndef HOME_ASSISTANT_MQTT_KEEPALIVE
+#if HAVE_WIFI
+  #define USE_HOME_ASSISTANT 1
+#else
+  #define USE_HOME_ASSISTANT 0
+#endif
+
+#if USE_HOME_ASSISTANT
+  #define HOME_ASSISTANT_DEVICE_SOFTWARE_VERSION "0.1.0"
+	#define HOME_ASSISTANT_DEVICE_MANUFACTURER "Farm Urban"
+	#define HOME_ASSISTANT_DEVICE_MODEL "Distributed Farm"
+  #define HOME_ASSISTANT_DISCOVERY_PREFIX "homeassistant"
+  #define HOME_ASSISTANT_DATA_PREFIX "homeassistant"
   #define HOME_ASSISTANT_MQTT_KEEPALIVE 90
 #endif
 

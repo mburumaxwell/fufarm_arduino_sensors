@@ -274,17 +274,17 @@ bool FuFarmSensors::readWaterLevelState()
 #endif
 }
 
-int FuFarmSensors::readLight()
+int32_t FuFarmSensors::readLight()
 {
 #ifdef HAVE_LIGHT
   float voltage = ANALOG_READ_MILLI_VOLTS(SENSORS_LIGHT_PIN);
-  return (int)(voltage / 10.0);
+  return (int32_t)(voltage / 10.0);
 #else
   return -1;
 #endif
 }
 
-int FuFarmSensors::readCO2()
+int32_t FuFarmSensors::readCO2()
 {
 #ifdef HAVE_CO2
   // Calculate CO2 concentration in ppm
@@ -296,7 +296,7 @@ int FuFarmSensors::readCO2()
   else
   {
     float voltage_difference = voltage - 400.0;
-    return (int)(voltage_difference * 50.0 / 16.0);
+    return (int32_t)(voltage_difference * 50.0 / 16.0);
   }
 #else
   return -1;
@@ -340,14 +340,14 @@ float FuFarmSensors::readFlow()
 #endif
 }
 
-int FuFarmSensors::readMoisture()
+int32_t FuFarmSensors::readMoisture()
 {
 #ifdef HAVE_MOISTURE
   // Need to calibrate this
   int dry = 587;
   int wet = 84;
   int reading = analogRead(SENSORS_MOISTURE_PIN);
-  return (int)(100.0 * (dry - reading) / (dry - wet));
+  return (int32_t)(100.0 * (dry - reading) / (dry - wet));
 #else
   return -1;
 #endif

@@ -31,10 +31,10 @@
 
 struct FuFarmSensorsData
 {
-  int light;
+  int32_t light;
   float humidity;
   float flow;
-  int co2;
+  int32_t co2;
   struct FuFarmSensorsTemperature
   {
     float air;
@@ -42,7 +42,7 @@ struct FuFarmSensorsData
   } temperature;
   float ec;
   float ph;
-  int moisture;
+  int32_t moisture;
   bool waterLevelState;
   struct FuFarmSensorsAirQuality
   {
@@ -104,12 +104,12 @@ private:
 #endif
 
 private:
-  int readLight();
-  int readCO2();
+  int32_t readLight();
+  int32_t readCO2();
   float readEC(float temperature);
   float readPH(float temperature);
   float readFlow();
-  int readMoisture();
+  int32_t readMoisture();
   float readTempWet();
   bool readWaterLevelState();
 
