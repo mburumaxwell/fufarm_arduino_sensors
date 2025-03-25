@@ -134,20 +134,17 @@ Once you upload, the code and the connection happens, in the mosquitto window yo
 <details>
 <summary>Console output</summary>
 ```txt
-1742675822: mosquitto version 2.0.21 starting
-1742675822: Config loaded from mosquitto.conf.
-1742675822: Opening ipv6 listen socket on port 1883.
-1742675822: Opening ipv4 listen socket on port 1883.
-1742675822: mosquitto version 2.0.21 running
-1742756031: New connection from ::1:54640 on port 1883.
-1742756031: New client connected from ::1:54640 as 48ca435e0080 (p2, c1, k90).
-1742756031: No will message specified.
-1742756031: Sending CONNACK to 48ca435e0080 (0, 0)
-1742756031: Received PUBLISH from 48ca435e0080 (d0, q0, r1, m0, 'homeassistant/sensor/48ca435e0080/temperature/config', ... (205 bytes))
-1742756032: Received PUBLISH from 48ca435e0080 (d0, q0, r1, m0, 'homeassistant/sensor/48ca435e0080/humidity/config', ... (196 bytes))
-1742756032: Received PUBLISH from 48ca435e0080 (d0, q0, r1, m0, 'homeassistant/sensor/48ca435e0080/aqi/config', ... (181 bytes))
-1742756032: Received PUBLISH from 48ca435e0080 (d0, q0, r1, m0, 'homeassistant/sensor/48ca435e0080/tvoc/config', ... (212 bytes))
-1742756033: Received PUBLISH from 48ca435e0080 (d0, q0, r1, m0, 'homeassistant/sensor/48ca435e0080/eco2/config', ... (194 bytes))
+1742759640: mosquitto version 2.0.21 starting
+1742759640: Config loaded from mosquitto.conf.
+1742759640: Opening ipv6 listen socket on port 1883.
+1742759640: Opening ipv4 listen socket on port 1883.
+1742759640: mosquitto version 2.0.21 running
+1742759655: New connection from ::1:56091 on port 1883.
+1742759655: New client connected from ::1:56091 as 48ca435e0080 (p2, c1, k90).
+1742759655: No will message specified.
+1742759655: Sending CONNACK to 48ca435e0080 (0, 0)
+1742759655: Received PUBLISH from 48ca435e0080 (d0, q0, r1, m0, 'homeassistant/sensor/48ca435e0080/light/config', ... (193 bytes))
+1742759655: Received PUBLISH from 48ca435e0080 (d0, q0, r1, m0, 'homeassistant/48ca435e0080/light/stat_t', ... (3 bytes))
 ```
 </details>
 
