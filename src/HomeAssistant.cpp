@@ -10,6 +10,9 @@
 #define HOME_ASSISTANT_MQTT_PASSWORD nullptr
 #endif
 
+#define EXPIRE_AFTER_SECONDS ((SAMPLE_WINDOW_MILLIS * 2) / 1000)
+#define SET_EXPIRE_AFTER(sensor) sensor.setExpireAfter(EXPIRE_AFTER_SECONDS)
+
 FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
 // The strings being passed in constructors are the sensor identifiers.
 // They should be unique for the device and are required by the library.
@@ -66,36 +69,52 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
 #ifdef HAVE_WATER_LEVEL_STATE
   // TODO: find a better device class for this
   waterLevel.setDeviceClass("moisture");
+  waterLevel.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_LIGHT
   light.setDeviceClass("illuminance");
+  light.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #if defined(HAVE_DHT22) || defined(HAVE_AHT20)
   temperature.setDeviceClass("temperature");
+  temperature.setExpireAfter(EXPIRE_AFTER_SECONDS);
+
   humidity.setDeviceClass("humidity");
+  humidity.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_ENS160
   aqi.setDeviceClass("aqi");
+  aqi.setExpireAfter(EXPIRE_AFTER_SECONDS);
+
   tvoc.setDeviceClass("volatile_organic_compounds_parts");
+  tvoc.setExpireAfter(EXPIRE_AFTER_SECONDS);
+
   eco2.setDeviceClass("carbon_dioxide");
+  eco2.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_FLOW
   flow.setDeviceClass("volume_flow_rate");
+  flow.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_TEMP_WET
   liquidtemp.setDeviceClass("temperature");
+  liquidtemp.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_CO2
   co2.setDeviceClass("carbon_dioxide");
+  co2.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_EC
   ec.setDeviceClass("ec");
+  ec.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_PH
   ph.setDeviceClass("ph");
+  ph.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_MOISTURE
   moisture.setDeviceClass("moisture");
+  moisture.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 }
 
