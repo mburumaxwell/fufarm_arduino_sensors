@@ -26,7 +26,10 @@ void setup()
   Serial.begin(9600);
 
   // https://www.arduino.cc/reference/en/language/functions/analog-io/analogreference/
-#if defined(ARDUINO_AVR_LEONARDO)
+#if defined(ARDUINO_ESP32S3_DEV)
+  // no need to set the reference voltage on ESP32-S3 because it offers reads in millivolts
+  analogReadResolution(12); // change to 12-bit resolution
+#elif defined(ARDUINO_AVR_LEONARDO)
   analogReference(DEFAULT); // Set the default voltage of the reference voltage
 #elif defined(ARDUINO_UNOR4_WIFI)
   analogReference(AR_DEFAULT); // AR_DEFAULT: 5V on the Uno R4 WiFi
