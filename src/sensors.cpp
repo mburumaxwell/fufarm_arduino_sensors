@@ -129,7 +129,7 @@ void FuFarmSensors::calibration(unsigned long readIntervalMs)
   if ((millis() - timepoint) > readIntervalMs)
   {
     timepoint = millis();
-#ifndef HAVE_TEMP_WET
+#ifdef HAVE_TEMP_WET
     temperature = readTempWet();
 #endif
 
