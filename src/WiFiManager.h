@@ -36,8 +36,9 @@ private:
   uint8_t _status;
 
 private:
+#ifndef ARDUINO_ESP32S3_DEV
   void printMacAddress(uint8_t mac[]);
-  void printEncryptionType(uint8_t type);
+#endif
   void listNetworks();
   void connect();
 };

@@ -2,7 +2,11 @@
 
 #if HAVE_WIFI
 
-WiFiManager::WiFiManager()
+#ifdef ARDUINO_ESP32S3_DEV
+#include "esp_eap_client.h"
+#endif
+
+WiFiManager::WiFiManager() : _status(WL_IDLE_STATUS)
 {
 }
 
@@ -12,6 +16,7 @@ WiFiManager::~WiFiManager()
 
 void WiFiManager::begin()
 {
+#ifndef ARDUINO_ESP32S3_DEV
   // check if the WiFi module is present
   if (WiFi.status() == WL_NO_MODULE)
   {
@@ -26,11 +31,16 @@ void WiFiManager::begin()
   {
     Serial.println("Please upgrade the firmware");
   }
+#endif
+
+#ifdef ARDUINO_ESP32S3_DEV
+  // Set WiFi to station mode and disconnect from an AP if it was previously connected.
+  WiFi.mode(WIFI_STA);
+#endif
 
   WiFi.disconnect(); // Clear network stack https://forum.arduino.cc/t/mqtt-with-esp32-gives-timeout-exceeded-disconnecting/688723/5
 
   listNetworks();
-
   connect();
 }
 
@@ -39,13 +49,14 @@ void WiFiManager::maintain()
   connect();
 }
 
+#ifndef ARDUINO_ESP32S3_DEV
 void WiFiManager::printMacAddress(uint8_t mac[])
 {
   for (int i = 5; i >= 0; i--)
   {
     if (mac[i] < 16)
     {
-      Serial.print("0");
+      Serial.print(F("0"));
     }
     Serial.print(mac[i], HEX);
     if (i > 0)
@@ -54,33 +65,57 @@ void WiFiManager::printMacAddress(uint8_t mac[])
     }
   }
 }
+#endif
 
-void WiFiManager::printEncryptionType(uint8_t type)
+#ifdef ARDUINO_ESP32S3_DEV
+const __FlashStringHelper *encryptionTypeToString(wifi_auth_mode_t mode)
+{
+  switch (mode)
+  {
+  case WIFI_AUTH_OPEN:
+    return F("open");
+  case WIFI_AUTH_WEP:
+    return F("WEP");
+  case WIFI_AUTH_WPA_PSK:
+    return F("WPA");
+  case WIFI_AUTH_WPA2_PSK:
+    return F("WPA2");
+  case WIFI_AUTH_WPA_WPA2_PSK:
+    return F("WPA+WPA2");
+  case WIFI_AUTH_WPA2_ENTERPRISE:
+    return F("WPA2-EAP");
+  case WIFI_AUTH_WPA3_PSK:
+    return F("WPA3");
+  case WIFI_AUTH_WPA2_WPA3_PSK:
+    return F("WPA2+WPA3");
+  case WIFI_AUTH_WAPI_PSK:
+    return F("WAPI");
+  default:
+    return F("unknown");
+  }
+}
+#else
+const __FlashStringHelper *encryptionTypeToString(uint8_t type)
 {
   // read the encryption type and print out the name:
   switch (type)
   {
   case ENC_TYPE_WEP:
-    Serial.println("WEP");
-    break;
+    return F("WEP");
   case ENC_TYPE_TKIP:
-    Serial.println("WPA");
-    break;
+    return F("WPA");
   case ENC_TYPE_CCMP:
-    Serial.println("WPA2");
-    break;
+    return F("WPA2");
   case ENC_TYPE_NONE:
-    Serial.println("None");
-    break;
+    return F("None");
   case ENC_TYPE_AUTO:
-    Serial.println("Auto");
-    break;
+    return F("Auto");
   case ENC_TYPE_UNKNOWN:
   default:
-    Serial.println("Unknown");
-    break;
+    return F("Unknown");
   }
 }
+#endif
 
 void WiFiManager::listNetworks()
 {
@@ -103,9 +138,15 @@ void WiFiManager::listNetworks()
     Serial.print(WiFi.RSSI(i));
     Serial.print(" dBm");
     Serial.print("\tEncryption: ");
-    printEncryptionType(WiFi.encryptionType(i));
+    Serial.print(encryptionTypeToString(WiFi.encryptionType(i)));
+    Serial.println();
   }
   Serial.println();
+
+  // Delete the scan result to free memory for code below.
+#ifdef ARDUINO_ESP32S3_DEV
+  WiFi.scanDelete();
+#endif
 }
 
 void WiFiManager::connect()
@@ -118,7 +159,7 @@ void WiFiManager::connect()
   }
 
   // detect disconnection
-  if (_status != status)
+  if (_status == WL_CONNECTED && _status != status)
   {
     Serial.println("WiFi disconnected");
   }
@@ -126,7 +167,22 @@ void WiFiManager::connect()
   Serial.print("Attempting to connect to WiFi SSID: ");
   Serial.println(WIFI_SSID);
 
-#if defined(WIFI_ENTERPRISE_USERNAME) && defined(WIFI_ENTERPRISE_PASSWORD)
+#ifdef ARDUINO_ESP32S3_DEV
+#if defined(WIFI_ENTERPRISE_IDENTITY)
+  esp_eap_client_set_identity((uint8_t *)WIFI_ENTERPRISE_IDENTITY, strlen(WIFI_ENTERPRISE_IDENTITY));
+#endif
+#if defined(WIFI_ENTERPRISE_USERNAME)
+  esp_eap_client_set_username((uint8_t *)WIFI_ENTERPRISE_USERNAME, strlen(WIFI_ENTERPRISE_USERNAME));
+#endif
+#if defined(WIFI_ENTERPRISE_PASSWORD)
+  esp_eap_client_set_password((uint8_t *)WIFI_ENTERPRISE_PASSWORD, strlen(WIFI_ENTERPRISE_PASSWORD));
+#endif
+#ifdef WIFI_ENTERPRISE_PASSWORD
+  esp_wifi_sta_enterprise_enable();
+#endif
+#endif
+
+#if defined(WIFI_ENTERPRISE_PASSWORD) && !defined(ARDUINO_ESP32S3_DEV)
   status = WiFi.beginEnterprise(WIFI_SSID,
                                 WIFI_ENTERPRISE_USERNAME,
                                 WIFI_ENTERPRISE_PASSWORD,
@@ -151,11 +207,16 @@ void WiFiManager::connect()
   Serial.print("SSID: ");
   Serial.println(WiFi.SSID());
 
+#ifdef ARDUINO_ESP32S3_DEV
+  Serial.print("BSSID: ");
+  Serial.println(WiFi.BSSIDstr());
+#else
   uint8_t mac[WL_MAC_ADDR_LENGTH];
   WiFi.BSSID(mac);
   Serial.print("BSSID: ");
   printMacAddress(mac);
   Serial.println();
+#endif
 
   Serial.print("Signal strength (RSSI): ");
   Serial.print(WiFi.RSSI());
@@ -164,10 +225,15 @@ void WiFiManager::connect()
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
 
+#ifdef ARDUINO_ESP32S3_DEV
+  Serial.print("MAC address: ");
+  Serial.println(WiFi.macAddress());
+#else
   WiFi.macAddress(mac);
   Serial.print("MAC address: ");
   printMacAddress(mac);
   Serial.println();
+#endif
 }
 
 #endif // HAVE_WIFI

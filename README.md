@@ -7,6 +7,7 @@ This code is built for the following boards:
 - [Arduino Leonardo](https://store.arduino.cc/products/arduino-leonardo-with-headers)
 - [Arduino UNO R4 WiFi](https://store.arduino.cc/products/uno-r4-wifi)
 - [Arduino UNO WiFi R2](https://store.arduino.cc/products/arduino-uno-wifi-rev2)
+- [ESP32 S3 DevKitC 1 N16R8](https://www.amazon.co.uk/ESP32-DevKitC-WROOM1-Development-Bluetooth/dp/B0CLD4QKT1)
 
 Other boards might be added with time, if need be. However, should you need to test on another board, [supported by PlatformIO](https://docs.platformio.org/en/latest/boards/index.html), the easiest way would be to add a new environment in the [platformio.ini](./platformio.ini) file. The current code base is built to work with Arduino which means choosing boards [supported by the Arduino platform](https://docs.platformio.org/en/latest/frameworks/arduino.html#boards) is easier.
 

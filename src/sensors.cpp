@@ -4,15 +4,22 @@
 
 // Will be different depending on the reference voltage.
 // We use float to avoid integer overflow.
-#ifdef ARDUINO_UNOR4_WIFI
+#if defined(ARDUINO_ESP32S3_DEV)
+// nothing to set there because it supports reading in millivolts
+#elif defined(ARDUINO_UNOR4_WIFI)
 #define ANALOG_REFERENCE_MILLI_VOLTS 5000.0f
 #define ANALOG_MAX_VALUE 16384 // 14 bit ADC
 #else
 #define ANALOG_REFERENCE_MILLI_VOLTS 5000.0f
 #define ANALOG_MAX_VALUE 1024 // 10 bit ADC
 #endif
+
 // to avoid possible loss of precision, multiply before dividing
+#if defined(ARDUINO_ESP32S3_DEV)
+#define ANALOG_READ_MILLI_VOLTS(pin) (analogReadMilliVolts(pin))
+#else
 #define ANALOG_READ_MILLI_VOLTS(pin) ((analogRead(pin) * ANALOG_REFERENCE_MILLI_VOLTS) / ANALOG_MAX_VALUE)
+#endif
 
 #define KVALUEADDR 0x00
 
