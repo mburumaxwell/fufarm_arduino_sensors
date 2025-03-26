@@ -88,6 +88,7 @@ void FuFarmSensors::begin()
 
 #ifdef HAVE_FLOW
   pulseCount = 0;
+  pinMode(SENSORS_SEN0217_PIN, INPUT);
   attachInterrupt(digitalPinToInterrupt(SENSORS_SEN0217_PIN), sen0217InterruptHandler, RISING);
 #endif
 
