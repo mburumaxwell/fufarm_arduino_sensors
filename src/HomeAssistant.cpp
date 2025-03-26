@@ -18,36 +18,36 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
 // They should be unique for the device and are required by the library.
 // We can probably find a better source but this works for the moment.
 #ifdef HAVE_WATER_LEVEL_STATE
-  waterLevel("waterLevel"),
+                                                           waterLevel("waterLevel"),
 #endif
 #ifdef HAVE_LIGHT
-  light("light"),
+                                                           light("light"),
 #endif
 #if defined(HAVE_DHT22) || defined(HAVE_AHT20)
-  temperature("temperature"), humidity("humidity"),
+                                                           temperature("temperature"), humidity("humidity"),
 #endif
 #ifdef HAVE_ENS160
-  aqi("aqi"), tvoc("tvoc"), eco2("eco2"),
+                                                           aqi("aqi"), tvoc("tvoc"), eco2("eco2"),
 #endif
 #ifdef HAVE_FLOW
-  flow("flow"),
+                                                           flow("flow"),
 #endif
 #ifdef HAVE_TEMP_WET
-  liquidtemp("liquidtemp"),
+                                                           liquidtemp("liquidtemp"),
 #endif
 #ifdef HAVE_CO2
-  co2("co2"),
+                                                           co2("co2"),
 #endif
 #ifdef HAVE_EC
-  ec("ec"),
+                                                           ec("ec"),
 #endif
 #ifdef HAVE_PH
-  ph("ph"),
+                                                           ph("ph"),
 #endif
 #ifdef HAVE_MOISTURE
-  moisture("moisture"),
+                                                           moisture("moisture"),
 #endif
-  mqtt(client, device)
+                                                           mqtt(client, device)
 {
   // set device's details
   device.setName(HOME_ASSISTANT_DEVICE_NAME);
@@ -148,37 +148,76 @@ void FuFarmHomeAssistant::maintain()
 void FuFarmHomeAssistant::setValues(FuFarmSensorsData *source, const bool force)
 {
 #ifdef HAVE_WATER_LEVEL_STATE
-  waterLevel.setState(source->waterLevelState, force);
+  if (source->waterLevelState.has_value())
+  {
+    waterLevel.setState(source->waterLevelState.value(), force);
+  }
 #endif
 #ifdef HAVE_LIGHT
-  light.setValue(source->light, force);
+  if (source->light.has_value())
+  {
+    light.setValue(source->light.value(), force);
+  }
 #endif
 #if defined(HAVE_DHT22) || defined(HAVE_AHT20)
-  temperature.setValue(source->temperature.air, force);
-  humidity.setValue(source->humidity, force);
+  if (source->temperatureAir.has_value())
+  {
+    temperature.setValue(source->temperatureAir.value(), force);
+  }
+  if (source->humidity.has_value())
+  {
+    humidity.setValue(source->humidity.value(), force);
+  }
 #endif
 #ifdef HAVE_ENS160
-  aqi.setValue(source->airQuality.index, force);
-  tvoc.setValue(source->airQuality.tvoc, force);
-  eco2.setValue(source->airQuality.eco2, force);
+  if (source->aqi.has_value())
+  {
+    aqi.setValue(source->aqi.value(), force);
+  }
+  if (source->tvoc.has_value())
+  {
+    tvoc.setValue(source->tvoc.value(), force);
+  }
+  if (source->eco2.has_value())
+  {
+    eco2.setValue(source->eco2.value(), force);
+  }
 #endif
 #ifdef HAVE_FLOW
-  flow.setValue(source->flow, force);
+  if (source->flow.has_value())
+  {
+    flow.setValue(source->flow.value(), force);
+  }
 #endif
 #ifdef HAVE_TEMP_WET
-  liquidtemp.setValue(source->temperature.wet, force);
+  if (source->temperatureWet.has_value())
+  {
+    liquidtemp.setValue(source->temperatureWet.value(), force);
+  }
 #endif
 #ifdef HAVE_CO2
-  co2.setValue(source->co2, force);
+  if (source->co2.has_value())
+  {
+    co2.setValue(source->co2.value(), force);
+  }
 #endif
 #ifdef HAVE_EC
-  ec.setValue(source->ec, force);
+  if (source->ec.has_value())
+  {
+    ec.setValue(source->ec.value(), force);
+  }
 #endif
 #ifdef HAVE_PH
-  ph.setValue(source->ph, force);
+  if (source->ph.has_value())
+  {
+    ph.setValue(source->ph.value(), force);
+  }
 #endif
 #ifdef HAVE_MOISTURE
-  moisture.setValue(source->moisture, force);
+  if (source->moisture.has_value())
+  {
+    moisture.setValue(source->moisture.value(), force);
+  }
 #endif
 }
 

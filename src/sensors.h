@@ -2,6 +2,7 @@
 #define SENSORS_H
 
 #include <stdint.h>
+#include "compat_optional.h"
 #include "config.h"
 
 #ifdef HAVE_EC
@@ -32,33 +33,28 @@
 
 struct FuFarmSensorsData
 {
-  int32_t light;
-  float humidity;
-  float flow;
-  int32_t co2;
-  struct FuFarmSensorsTemperature
-  {
-    float air;
-    float wet;
-  } temperature;
-  float ec;
-  float ph;
-  int32_t moisture;
-  bool waterLevelState;
-  struct FuFarmSensorsAirQuality
-  {
-    // air quality index
-    // https://www.home-assistant.io/integrations/waqi/
-    uint16_t index;
+  compat::optional<int32_t> light;
+  compat::optional<float> humidity;
+  compat::optional<float> temperatureAir;
+  compat::optional<float> flow;
+  compat::optional<int32_t> co2;
+  compat::optional<float> temperatureWet;
+  compat::optional<float> ec;
+  compat::optional<float> ph;
+  compat::optional<int32_t> moisture;
+  compat::optional<bool> waterLevelState;
 
-    // Total Volatile Organic Compounds
-    // range: 0–65000, unit: ppb (parts per billion)
-    uint16_t tvoc;
+  // air quality index
+  // https://www.home-assistant.io/integrations/waqi/
+  compat::optional<uint16_t> aqi;
 
-    // equivalent CO2 concentration
-    // range: 400–65000, unit: ppm (parts per million)
-    uint16_t eco2;
-  } airQuality;
+  // Total Volatile Organic Compounds
+  // range: 0–65000, unit: ppb (parts per billion)
+  compat::optional<uint16_t> tvoc;
+
+  // equivalent CO2 concentration
+  // range: 400–65000, unit: ppm (parts per million)
+  compat::optional<uint16_t> eco2;
 };
 
 class FuFarmSensors
@@ -105,14 +101,14 @@ private:
 #endif
 
 private:
-  int32_t readLight();
-  int32_t readCO2();
-  float readEC(float temperature);
-  float readPH(float temperature);
-  float readFlow();
-  int32_t readMoisture();
-  float readTempWet();
-  bool readWaterLevelState();
+  compat::optional<int32_t> readLight();
+  compat::optional<int32_t> readCO2();
+  compat::optional<float> readEC(float temperature);
+  compat::optional<float> readPH(float temperature);
+  compat::optional<float> readFlow();
+  compat::optional<int32_t> readMoisture();
+  compat::optional<float> readTempWet();
+  compat::optional<bool> readWaterLevelState();
 
 private:
   char buffer[10];

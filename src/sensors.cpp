@@ -16,7 +16,7 @@
 
 #define KVALUEADDR 0x00
 
-FuFarmSensors* FuFarmSensors::_instance = nullptr;
+FuFarmSensors *FuFarmSensors::_instance = nullptr;
 
 #ifdef HAVE_FLOW
 static void sen0217InterruptHandler()
@@ -110,7 +110,7 @@ void FuFarmSensors::calibration(unsigned long readIntervalMs)
   // - https://wiki.dfrobot.com/Gravity__Analog_pH_Sensor_Meter_Kit_V2_SKU_SEN0161-V2
   // - https://wiki.dfrobot.com/Gravity__Analog_Electrical_Conductivity_Sensor___Meter_V2__K%3D1__SKU_DFR0300
 
-  static float temperature = 25; // assumed room temperature (used when there is no wet temp sensor)
+  static compat::optional<float> temperature = 25; // assumed room temperature (used when there is no wet temp sensor)
   static unsigned long timepoint = millis();
 #ifdef HAVE_EC
   static float voltageEC, ecValue;
@@ -127,16 +127,16 @@ void FuFarmSensors::calibration(unsigned long readIntervalMs)
 
 #ifdef HAVE_EC
     voltageEC = ANALOG_READ_MILLI_VOLTS(SENSORS_EC_PIN);
-    ecValue = ecProbe.readEC(voltageEC, temperature);
+    ecValue = ecProbe.readEC(voltageEC, temperature.value());
 #endif
 
 #ifdef HAVE_PH
     voltagePH = ANALOG_READ_MILLI_VOLTS(SENSORS_PH_PIN);
-    phValue = phProbe.readPH(voltagePH, temperature);
+    phValue = phProbe.readPH(voltagePH, temperature.value());
 #endif
 
     Serial.print(F("Temperature: "));
-    Serial.print(temperature, 1);
+    Serial.print(temperature.value(), 1);
 #ifdef HAVE_EC
     Serial.print(F("^C  EC: "));
     Serial.print(ecValue, 2);
@@ -173,13 +173,13 @@ void FuFarmSensors::calibration(unsigned long readIntervalMs)
 #ifdef HAVE_EC
     else if (strstr(buffer, "ENTEREC") || strstr(buffer, "CALEC") || strstr(buffer, "EXITEC"))
     {
-      ecProbe.calibration(voltageEC, temperature, buffer); // calibration process by Serial CMD
+      ecProbe.calibration(voltageEC, temperature.value(), buffer); // calibration process by Serial CMD
     }
 #endif
 #ifdef HAVE_PH
     else if (strstr(buffer, "ENTERPH") || strstr(buffer, "CALPH") || strstr(buffer, "EXITPH"))
     {
-      phProbe.calibration(voltagePH, temperature, buffer); // calibration process by Serial CMD
+      phProbe.calibration(voltagePH, temperature.value(), buffer); // calibration process by Serial CMD
     }
 #endif
 
@@ -193,32 +193,27 @@ void FuFarmSensors::read(FuFarmSensorsData *dest)
 {
   dest->light = readLight();
 
-  float airTemperature = -1;
+  compat::optional<float> airTemperature = compat::nullopt;
 #ifdef HAVE_DHT22
   TempAndHumidity th = dht.getTempAndHumidity();
-  airTemperature = dest->temperature.air = th.temperature;
+  airTemperature = dest->temperatureAir = th.temperature;
   dest->humidity = th.humidity;
 #elif HAVE_AHT20
   if (aht20.startMeasurementReady(true))
   {
-    airTemperature = dest->temperature.air = aht20.getTemperature_C();
+    airTemperature = dest->temperatureAir = aht20.getTemperature_C();
     dest->humidity = aht20.getHumidity_RH();
   }
   else
   {
     Serial.println("AHT20 sensor not ready");
-    airTemperature = dest->temperature.air = -1;
-    dest->humidity = -1;
   }
-#else
-  airTemperature = dest->temperature.air = -1;
-  dest->humidity = -1;
 #endif
 
 #ifdef HAVE_ENS160
-  if (dest->temperature.air != -1 && dest->humidity != -1)
+  if (dest->temperatureAir.has_value() && dest->humidity.has_value())
   {
-    ens160.setTempAndHum(dest->temperature.air, dest->humidity);
+    ens160.setTempAndHum(dest->temperatureAir.value(), dest->humidity.value());
   }
   else
   {
@@ -233,27 +228,35 @@ void FuFarmSensors::read(FuFarmSensorsData *dest)
   }
   else
   {
-    dest->airQuality.index = convertENS160AQItoHA(ens160.getAQI());
-    dest->airQuality.tvoc = ens160.getTVOC();
-    dest->airQuality.eco2 = ens160.getECO2();
+    dest->aqi = convertENS160AQItoHA(ens160.getAQI());
+    dest->tvoc = ens160.getTVOC();
+    dest->eco2 = ens160.getECO2();
   }
 #endif
 
   dest->flow = readFlow();
   dest->co2 = readCO2();
 
-  float calibrationTemperature = airTemperature;
+  compat::optional<float> calibrationTemperature = airTemperature;
 #ifdef HAVE_TEMP_WET
-  float wetTemperature = dest->temperature.wet = readTempWet();
+  compat::optional<float> wetTemperature = dest->temperatureWet = readTempWet();
   calibrationTemperature = wetTemperature;
-  if (wetTemperature == -1000 || wetTemperature == -1001 || wetTemperature == -1002)
+  if (!wetTemperature.has_value() || wetTemperature == -1000 || wetTemperature == -1001 || wetTemperature == -1002)
   {
     calibrationTemperature = airTemperature;
   }
 #endif
 
-  dest->ec = readEC(calibrationTemperature);
-  dest->ph = readPH(calibrationTemperature);
+  if (calibrationTemperature.has_value())
+  {
+    dest->ec = readEC(calibrationTemperature.value());
+    dest->ph = readPH(calibrationTemperature.value());
+  }
+  else
+  {
+    Serial.println("Could not read temperature for EC and pH sensors. Calibration temperature missing.");
+  }
+
   dest->moisture = readMoisture();
   dest->waterLevelState = readWaterLevelState();
 }
@@ -265,26 +268,26 @@ void FuFarmSensors::sen0217Interrupt()
 #endif
 }
 
-bool FuFarmSensors::readWaterLevelState()
+compat::optional<bool> FuFarmSensors::readWaterLevelState()
 {
 #ifdef HAVE_WATER_LEVEL_STATE
   return (bool)digitalRead(SENSORS_SEN0204_PIN);
 #else
-  return false;
+  return compat::nullopt;
 #endif
 }
 
-int32_t FuFarmSensors::readLight()
+compat::optional<int32_t> FuFarmSensors::readLight()
 {
 #ifdef HAVE_LIGHT
   float voltage = ANALOG_READ_MILLI_VOLTS(SENSORS_LIGHT_PIN);
   return (int32_t)(voltage / 10.0);
 #else
-  return -1;
+  return compat::nullopt;
 #endif
 }
 
-int32_t FuFarmSensors::readCO2()
+compat::optional<int32_t> FuFarmSensors::readCO2()
 {
 #ifdef HAVE_CO2
   // Calculate CO2 concentration in ppm
@@ -299,31 +302,31 @@ int32_t FuFarmSensors::readCO2()
     return (int32_t)(voltage_difference * 50.0 / 16.0);
   }
 #else
-  return -1;
+  return compat::nullopt;
 #endif
 }
 
-float FuFarmSensors::readEC(float temperature)
+compat::optional<float> FuFarmSensors::readEC(float temperature)
 {
 #ifdef HAVE_EC
   float voltage = ANALOG_READ_MILLI_VOLTS(SENSORS_EC_PIN);
   return ecProbe.readEC(voltage, temperature);
 #else
-  return -1;
+  return compat::nullopt;
 #endif
 }
 
-float FuFarmSensors::readPH(float temperature)
+compat::optional<float> FuFarmSensors::readPH(float temperature)
 {
 #ifdef HAVE_PH
   float voltage = ANALOG_READ_MILLI_VOLTS(SENSORS_PH_PIN);
   return phProbe.readPH(voltage, temperature);
 #else
-  return -1;
+  return compat::nullopt;
 #endif
 }
 
-float FuFarmSensors::readFlow()
+compat::optional<float> FuFarmSensors::readFlow()
 {
 #ifdef HAVE_FLOW
   /*
@@ -336,11 +339,11 @@ float FuFarmSensors::readFlow()
   pulseCount = 0; // reset flow counter
   return hertz / 7.0;
 #else
-  return -1;
+  return compat::nullopt;
 #endif
 }
 
-int32_t FuFarmSensors::readMoisture()
+compat::optional<int32_t> FuFarmSensors::readMoisture()
 {
 #ifdef HAVE_MOISTURE
   // Need to calibrate this
@@ -349,11 +352,11 @@ int32_t FuFarmSensors::readMoisture()
   int reading = analogRead(SENSORS_MOISTURE_PIN);
   return (int32_t)(100.0 * (dry - reading) / (dry - wet));
 #else
-  return -1;
+  return compat::nullopt;
 #endif
 }
 
-float FuFarmSensors::readTempWet()
+compat::optional<float> FuFarmSensors::readTempWet()
 {
 #ifdef HAVE_TEMP_WET
   // returns the temperature from one DS18S20 in DEG Celsius
@@ -406,7 +409,7 @@ float FuFarmSensors::readTempWet()
 
   return TemperatureSum;
 #else
-  return -1;
+  return compat::nullopt;
 #endif
 }
 

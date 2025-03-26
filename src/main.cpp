@@ -95,37 +95,76 @@ void loop()
 #else
     // populate json
 #if defined(HAVE_DHT22) || defined(HAVE_AHT20)
-    doc["tempair"] = sensorsData.temperature.air;
-    doc["humidity"] = sensorsData.humidity;
+    if (sensorsData.temperatureAir.has_value())
+    {
+      doc["tempair"] = sensorsData.temperatureAir.value();
+    }
+    if (sensorsData.humidity.has_value())
+    {
+      doc["humidity"] = sensorsData.humidity.value();
+    }
 #endif
 #ifdef HAVE_ENS160
-    doc["aqi"] = sensorsData.airQuality.index;
-    doc["tvoc"] = sensorsData.airQuality.tvoc;
-    doc["eco2"] = sensorsData.airQuality.eco2;
+    if (sensorsData.aqi.has_value())
+    {
+      doc["aqi"] = sensorsData.aqi.value();
+    }
+    if (sensorsData.tvoc.has_value())
+    {
+      doc["tvoc"] = sensorsData.tvoc.value();
+    }
+    if (sensorsData.eco2.has_value())
+    {
+      doc["eco2"] = sensorsData.eco2.value();
+    }
 #endif
 #ifdef HAVE_TEMP_WET
-    doc["tempwet"] = sensorsData.temperature.wet;
+    if (sensorsData.temperatureWet.has_value())
+    {
+      doc["tempwet"] = sensorsData.temperatureWet.value();
+    }
 #endif
 #ifdef HAVE_CO2
-    doc["co2"] = sensorsData.co2;
+    if (sensorsData.co2.has_value())
+    {
+      doc["co2"] = sensorsData.co2.value();
+    }
 #endif
 #ifdef HAVE_EC
-    doc["ec"] = sensorsData.ec;
+    if (sensorsData.ec.has_value())
+    {
+      doc["ec"] = sensorsData.ec.value();
+    }
 #endif
 #ifdef HAVE_PH
-    doc["ph"] = sensorsData.ph;
+    if (sensorsData.ph.has_value())
+    {
+      doc["ph"] = sensorsData.ph.value();
+    }
 #endif
 #ifdef HAVE_FLOW
-    doc["flow"] = sensorsData.flow;
+    if (sensorsData.flow.has_value())
+    {
+      doc["flow"] = sensorsData.flow.value();
+    }
 #endif
 #ifdef HAVE_LIGHT
-    doc["light"] = sensorsData.light;
+    if (sensorsData.light.has_value())
+    {
+      doc["light"] = sensorsData.light.value();
+    }
 #endif
 #ifdef HAVE_MOISTURE
-    doc["moisture"] = sensorsData.moisture;
+    if (sensorsData.moisture.has_value())
+    {
+      doc["moisture"] = sensorsData.moisture.value();
+    }
 #endif
 #ifdef HAVE_WATER_LEVEL_STATE
-    doc["water_level"] = sensorsData.waterLevelState;
+    if (sensorsData.waterLevelState.has_value())
+    {
+      doc["water_level"] = sensorsData.waterLevelState.value();
+    }
 #endif
 
     serializeJson(doc, Serial);
