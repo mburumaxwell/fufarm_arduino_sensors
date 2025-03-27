@@ -114,7 +114,7 @@
 
 #if defined(ARDUINO_UNOR4_WIFI)
   #if defined(WIFI_ENTERPRISE_USERNAME) || defined(WIFI_ENTERPRISE_PASSWORD)
-    #error "Arduino Uno R4 WiFi does not yes support enterprise WiFi."
+    #error "Arduino Uno R4 WiFi does not yet support enterprise WiFi."
   #endif
 #endif
 
@@ -132,6 +132,19 @@
   #define HOME_ASSISTANT_DISCOVERY_PREFIX "homeassistant"
   #define HOME_ASSISTANT_DATA_PREFIX "homeassistant"
   #define HOME_ASSISTANT_MQTT_KEEPALIVE 90
+#endif
+
+#if HOME_ASSISTANT_MQTT_TLS
+extern const char root_ca_certs[];
+#endif
+
+#if HOME_ASSISTANT_MQTT_TLS && !HOME_ASSISTANT_MQTT_TLS_SUPPRESS_WARNING
+  #if defined(ARDUINO_UNOR4_WIFI)
+    #pragma "⚠️ Arduino Uno R4 WiFi may not work with self signed certificates for TLS."
+  #endif
+  #if defined(ARDUINO_AVR_UNO_WIFI_REV2)
+    #pragma "⚠️ Arduino Uno WiFi Rev2 may not work with self signed certificates for TLS."
+  #endif
 #endif
 
 #endif // CONFIG_H

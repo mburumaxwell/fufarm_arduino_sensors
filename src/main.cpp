@@ -15,7 +15,16 @@ static boolean calibrationMode = false;
 // Wifi control
 #if HAVE_WIFI
 WiFiManager wifiManager;
+#if HOME_ASSISTANT_MQTT_TLS
+#ifdef ARDUINO_ESP32S3_DEV
+#include <WiFiClientSecure.h>
+WiFiClientSecure wifiClient;
+#else
+WiFiSSLClient wifiClient;
+#endif
+#else
 WiFiClient wifiClient;
+#endif
 FuFarmHomeAssistant ha(wifiClient);
 #else
 StaticJsonDocument<200> doc;
@@ -68,6 +77,9 @@ void setup()
 
 #if HAVE_WIFI
   wifiManager.begin();
+#if HOME_ASSISTANT_MQTT_TLS && defined(ARDUINO_ESP32S3_DEV)
+  wifiClient.setCACert(root_ca_certs);
+#endif
 
   uint8_t mac[6];
   WiFi.macAddress(mac);

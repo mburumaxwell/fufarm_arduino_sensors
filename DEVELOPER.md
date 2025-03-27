@@ -40,6 +40,7 @@ Once you upload, the code and the connection happens, in the mosquitto window yo
 
 <details>
 <summary>Console output</summary>
+
 ```txt
 1742759640: mosquitto version 2.0.21 starting
 1742759640: Config loaded from mosquitto.conf.
@@ -53,7 +54,15 @@ Once you upload, the code and the connection happens, in the mosquitto window yo
 1742759655: Received PUBLISH from 48ca435e0080 (d0, q0, r1, m0, 'homeassistant/sensor/48ca435e0080/light/config', ... (193 bytes))
 1742759655: Received PUBLISH from 48ca435e0080 (d0, q0, r1, m0, 'homeassistant/48ca435e0080/light/stat_t', ... (3 bytes))
 ```
+
 </details>
+
+### TLS
+
+Mosquitto supports TLS and there may be a reason to use it in your Home Assistant setup such borrowing your neighbour's WiFi (just an example but seriously be careful). You may also have a domain name for your home setup for easy access.
+In these cases, once you have setup TLS on your Mosquitto/HomeAssistant, you can enable TLS in this code by setting `-DHOME_ASSISTANT_MQTT_TLS=1`, changing the host e.g. `-DHOME_ASSISTANT_MQTT_HOST=\"home.yens.io\"`, changing the port e.g. `-DHOME_ASSISTANT_MQTT_PORT=8883`, and adding the relevant certificates (self-signed certs) if any in `certs.cpp`. Once you have setup TLS, you might want to disable connection on non-authenticated port (usually 1883).
+
+> Ultimately, the best security is isolation of your IoT network at work or home down to a different VLAN if possible. TLS is the alternative when isolation is not possible or practical. If you manage both, you're golden.
 
 ## Spelling
 
