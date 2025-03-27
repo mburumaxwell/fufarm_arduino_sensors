@@ -15,12 +15,12 @@ You can comment/uncomment, one of the lines under `platformio` in the configurat
 
 | Name/Action                   | Command Format                                        | Example                                               |
 | ----------------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
-| Build (default environments)  |                                                       | `pio run`                                             |
-| Build (specific environment)  | `pio run --environment {env-name}`                    | `pio run --environment uno_wifi_rev2`                 |
-| Upload (specific environment) | `pio run --environment {env-name} --target upload`    | `pio run --environment uno_wifi_rev2 --target upload` |
-| Test                          |                                                       | `pio test --environment native`                       |
-| Clean (default environments)n |                                                       | `pio run --target fullclean`                          |
-| Clean (specific environment)  | `pio run --environment {env-name} --target fullclean` | `pio run --environment leonardo --target fullclean`   |
+| Build (default boards)  |                                                       | `pio run`                                             |
+| Build (specific board)  | `pio run --environment {env-name}`                    | `pio run --environment uno_wifi_rev2`                 |
+| Upload (specific board) | `pio run --environment {env-name} --target upload`    | `pio run --environment uno_wifi_rev2 --target upload` |
+| Test                    |                                                       | `pio test --environment native`                       |
+| Clean (default boards)n |                                                       | `pio run --target fullclean`                          |
+| Clean (specific board)  | `pio run --environment {env-name} --target fullclean` | `pio run --environment leonardo --target fullclean`   |
 
 ## WiFi
 
