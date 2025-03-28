@@ -24,25 +24,26 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
   light("light"),
 #endif
 #if defined(HAVE_DHT22) || defined(HAVE_AHT20)
-  temperature("temperature"), humidity("humidity"),
+  temperature("temperature", HASensorNumber::PrecisionP2),
+  humidity("humidity", HASensorNumber::PrecisionP2),
 #endif
 #ifdef HAVE_ENS160
   aqi("aqi"), tvoc("tvoc"), eco2("eco2"),
 #endif
 #ifdef HAVE_FLOW
-  flow("flow"),
+  flow("flow", HASensorNumber::PrecisionP2),
 #endif
 #ifdef HAVE_TEMP_WET
-  liquidtemp("liquidtemp"),
+  liquidtemp("liquidtemp", HASensorNumber::PrecisionP2),
 #endif
 #ifdef HAVE_CO2
   co2("co2"),
 #endif
 #ifdef HAVE_EC
-  ec("ec"),
+  ec("ec", HASensorNumber::PrecisionP2),
 #endif
 #ifdef HAVE_PH
-  ph("ph"),
+  ph("ph", HASensorNumber::PrecisionP2),
 #endif
 #ifdef HAVE_MOISTURE
   moisture("moisture"),
