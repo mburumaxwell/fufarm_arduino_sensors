@@ -115,7 +115,9 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
   co2.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_EC
-  ec.setDeviceClass("ec");
+  // As of 2025-Mar-28, Home Assistant does not have a device class for EC, we create a custom one
+  ec.setIcon("mdi:waveform");
+  ec.setName("Electrical Conductivity");
   ec.setUnitOfMeasurement("ms/cm");
   ec.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
