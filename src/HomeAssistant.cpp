@@ -67,8 +67,9 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
   // Setup sensors with the relevant information
   // Device classes are listed at https://www.home-assistant.io/integrations/sensor/#device-class
 #ifdef HAVE_WATER_LEVEL_STATE
-  // TODO: find a better device class for this
   waterLevel.setDeviceClass("moisture");
+  waterLevel.setIcon("mdi:cup-water");
+  waterLevel.setName("Water Tank Level");
   waterLevel.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_LIGHT
@@ -96,6 +97,7 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
   tvoc.setExpireAfter(EXPIRE_AFTER_SECONDS);
 
   eco2.setDeviceClass("carbon_dioxide");
+  eco2.setName("Carbon Dioxide (Equivalent)");
   eco2.setUnitOfMeasurement("ppm");
   eco2.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
@@ -106,6 +108,7 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
 #endif
 #ifdef HAVE_TEMP_WET
   liquidtemp.setDeviceClass("temperature");
+  liquidtemp.setName("Liquid Temperature");
   liquidtemp.setUnitOfMeasurement("°C");
   liquidtemp.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
