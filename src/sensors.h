@@ -33,17 +33,31 @@
 struct FuFarmSensorsData
 {
   int32_t light;
+
+  // relative humidity (%)
   float humidity;
+
+  // measured in L/min
   float flow;
+
+  // measured in ppm
   int32_t co2;
   struct FuFarmSensorsTemperature
   {
+    // measured in °C
     float air;
+
+    // measured in °C
     float wet;
   } temperature;
+
+  // measured in ms/cm
   float ec;
   float ph;
+
+  // percentage (%) of water in a substance
   int32_t moisture;
+
   bool waterLevelState;
   struct FuFarmSensorsAirQuality
   {

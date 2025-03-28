@@ -72,40 +72,51 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
   waterLevel.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_LIGHT
+  // TODO: the sensor we are using does not support lux, we need to consider using a custom class
   light.setDeviceClass("illuminance");
+  light.setUnitOfMeasurement("lx");
   light.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #if defined(HAVE_DHT22) || defined(HAVE_AHT20)
   temperature.setDeviceClass("temperature");
+  temperature.setUnitOfMeasurement("°C");
   temperature.setExpireAfter(EXPIRE_AFTER_SECONDS);
 
   humidity.setDeviceClass("humidity");
+  humidity.setUnitOfMeasurement("%");
   humidity.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_ENS160
   aqi.setDeviceClass("aqi");
   aqi.setExpireAfter(EXPIRE_AFTER_SECONDS);
+  // no need to set unit for AQI, it is documented as unitless
 
   tvoc.setDeviceClass("volatile_organic_compounds_parts");
+  tvoc.setUnitOfMeasurement("ppb");
   tvoc.setExpireAfter(EXPIRE_AFTER_SECONDS);
 
   eco2.setDeviceClass("carbon_dioxide");
+  eco2.setUnitOfMeasurement("ppm");
   eco2.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_FLOW
   flow.setDeviceClass("volume_flow_rate");
+  flow.setUnitOfMeasurement("L/min");
   flow.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_TEMP_WET
   liquidtemp.setDeviceClass("temperature");
+  liquidtemp.setUnitOfMeasurement("°C");
   liquidtemp.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_CO2
   co2.setDeviceClass("carbon_dioxide");
+  co2.setUnitOfMeasurement("ppm");
   co2.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_EC
   ec.setDeviceClass("ec");
+  ec.setUnitOfMeasurement("ms/cm");
   ec.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_PH
@@ -114,6 +125,7 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
 #endif
 #ifdef HAVE_MOISTURE
   moisture.setDeviceClass("moisture");
+  moisture.setUnitOfMeasurement("%");
   moisture.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 }
