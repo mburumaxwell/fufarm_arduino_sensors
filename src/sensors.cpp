@@ -266,12 +266,12 @@ void FuFarmSensors::read(FuFarmSensorsData *dest)
   dest->waterLevelState = readWaterLevelState();
 }
 
+#ifdef HAVE_FLOW
 void FuFarmSensors::sen0217Interrupt()
 {
-#ifdef HAVE_FLOW
   pulseCount += 1;
-#endif
 }
+#endif
 
 bool FuFarmSensors::readWaterLevelState()
 {

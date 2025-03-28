@@ -61,21 +61,58 @@ struct FuFarmSensorsData
   } airQuality;
 };
 
+/**
+ * This class is a wrapper for the sensors logic.
+ * It is where all the sensors related code is located.
+ */
 class FuFarmSensors
 {
 public:
+  /**
+   * Creates a new instance of the FuFarmSensors class.
+   * Please note that only one instance of the class can be initialized at the same time.
+   */
   FuFarmSensors();
+
+  /**
+   * Cleanup resources created and managed by the FuFarmSensors class.
+   */
   ~FuFarmSensors();
-  void begin();                                           // initialization
-  void calibration(unsigned long readIntervalMs = 1000U); // calibration, should be called in a loop, ideally a config mode
-  void read(FuFarmSensorsData *dest);                     // read all sensor data
-  void sen0217Interrupt();                                // should be called from the interrupt handler passed in the constructor
+
+  /**
+   * Initializes the sensors.
+   * This should be called once at the beginning of the program.
+   * The required interrupts are also attached.
+   */
+  void begin();
+
+  /**
+   * Performs calibration of the sensors.
+   * Sensors that require calibration are EC, pH.
+   * This should be called in a loop, ideally in a config mode.
+   */
+  void calibration(unsigned long readIntervalMs = 1000U);
+
+  /**
+   * Reads all sensor data and stores it in the provided FuFarmSensorsData structure.
+   */
+  void read(FuFarmSensorsData *dest);
 
   /**
    * Returns existing instance (singleton) of the FuFarmSensors class.
    * It may be a null pointer if the FuFarmSensors object was never constructed or it was destroyed.
    */
   inline static FuFarmSensors *instance() { return _instance; }
+
+#ifdef HAVE_FLOW
+
+  /**
+   * Interrupt handler for the flow sensor.
+   * This should only be called from the interrupt handler.
+   */
+  void sen0217Interrupt();
+#endif
+
 
 private:
 #ifdef HAVE_DHT22

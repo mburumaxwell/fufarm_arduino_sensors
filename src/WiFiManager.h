@@ -7,6 +7,10 @@
 
 #include <WiFi.h>
 
+/**
+ * This class is a wrapper for the WiFi logic.
+ * It is where all the WiFi related code is located.
+ */
 class WiFiManager
 {
 public:
@@ -22,7 +26,7 @@ public:
   ~WiFiManager();
 
   /**
-   * Scan for networks and connect to the one known
+   * Scan for networks and connect to the one configured.
    */
   void begin();
 
