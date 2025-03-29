@@ -32,6 +32,7 @@
 
 struct FuFarmSensorsData
 {
+  // light intensity (lux)
   int32_t light;
 
   // relative humidity (%)

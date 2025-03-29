@@ -70,11 +70,11 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
 #ifdef HAVE_WATER_LEVEL_STATE
   waterLevel.setDeviceClass("moisture");
   waterLevel.setIcon("mdi:cup-water");
-  waterLevel.setName("Water Tank Level");
+  waterLevel.setName("Sump Level Indicator");
   waterLevel.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_LIGHT
-  // TODO: the sensor we are using does not support lux, we need to consider using a custom class
+  // TODO: the sensor we are using does not support lux, we may want to consider using a custom class
   light.setDeviceClass("illuminance");
   light.setUnitOfMeasurement("lx");
   light.setExpireAfter(EXPIRE_AFTER_SECONDS);
@@ -104,6 +104,7 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
 #endif
 #ifdef HAVE_FLOW
   flow.setDeviceClass("volume_flow_rate");
+  flow.setIcon("mdi:waves-arrow-right"); // default icon is unknown so we set ours
   flow.setUnitOfMeasurement("L/min");
   flow.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
