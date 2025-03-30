@@ -36,6 +36,13 @@ public:
    */
   void maintain();
 
+  /**
+   * Get the current time from RTC if available or the WiFi module.
+   *
+   * @param info Pointer to a tm structure to store the current time.
+   */
+  bool getCurrentTime(struct tm *info);
+
 private:
   uint8_t _status;
 
@@ -43,7 +50,9 @@ private:
 #ifndef ARDUINO_ARCH_ESP32
   void printMacAddress(uint8_t mac[]);
 #endif
+#if !WIFI_SKIP_LIST_NETWORKS
   void listNetworks();
+#endif
   void connect();
 };
 

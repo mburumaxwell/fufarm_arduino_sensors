@@ -2,10 +2,13 @@
 
 #if HAVE_WIFI
 
+#include <time.h>
 #include "reboot.h"
 
 #ifdef ARDUINO_ARCH_ESP32
 #include "esp_eap_client.h"
+#elif defined(ARDUINO_UNOR4_WIFI)
+#include <RTC.h>
 #endif
 
 WiFiManager::WiFiManager() : _status(WL_IDLE_STATUS)
@@ -22,7 +25,7 @@ void WiFiManager::begin()
   // check if the WiFi module is present
   if (WiFi.status() == WL_NO_MODULE)
   {
-    Serial.println("Communication with WiFi module failed!");
+    Serial.println(F("Communication with WiFi module failed!"));
     while (true)
       ; // don't continue
   }
@@ -31,7 +34,7 @@ void WiFiManager::begin()
   String fv = WiFi.firmwareVersion();
   if (fv < WIFI_FIRMWARE_LATEST_VERSION)
   {
-    Serial.println("Please upgrade the firmware");
+    Serial.println(F("Please upgrade the firmware"));
   }
 #endif
 
@@ -42,7 +45,9 @@ void WiFiManager::begin()
 
   WiFi.disconnect(); // Clear network stack https://forum.arduino.cc/t/mqtt-with-esp32-gives-timeout-exceeded-disconnecting/688723/5
 
+#if !WIFI_SKIP_LIST_NETWORKS
   listNetworks();
+#endif
   connect();
 }
 
@@ -63,7 +68,7 @@ void WiFiManager::printMacAddress(uint8_t mac[])
     Serial.print(mac[i], HEX);
     if (i > 0)
     {
-      Serial.print(":");
+      Serial.print(F(":"));
     }
   }
 }
@@ -119,27 +124,28 @@ const __FlashStringHelper *encryptionTypeToString(uint8_t type)
 }
 #endif
 
+#if !WIFI_SKIP_LIST_NETWORKS
 void WiFiManager::listNetworks()
 {
-  Serial.println("** Scan Networks **");
+  Serial.println(F("** Scan Networks **"));
   int8_t count = WiFi.scanNetworks();
   if (count == -1)
   {
-    Serial.println("Couldn't scan for WiFi networks");
+    Serial.println(F("Couldn't scan for WiFi networks"));
     return; // nothing more to do here
   }
 
-  Serial.print("Number of available networks: ");
+  Serial.print(F("Number of available networks: "));
   Serial.println(count);
   for (int8_t i = 0; i < count; i++)
   {
     Serial.print(i);
-    Serial.print(") ");
+    Serial.print(F(") "));
     Serial.print(WiFi.SSID(i));
-    Serial.print("\tSignal: ");
+    Serial.print(F("\tSignal: "));
     Serial.print(WiFi.RSSI(i));
-    Serial.print(" dBm");
-    Serial.print("\tEncryption: ");
+    Serial.print(F(" dBm"));
+    Serial.print(F("\tEncryption: "));
     Serial.print(encryptionTypeToString(WiFi.encryptionType(i)));
     Serial.println();
   }
@@ -150,6 +156,7 @@ void WiFiManager::listNetworks()
   WiFi.scanDelete();
 #endif
 }
+#endif
 
 void WiFiManager::connect()
 {
@@ -163,10 +170,10 @@ void WiFiManager::connect()
   // detect disconnection
   if (_status == WL_CONNECTED && _status != status)
   {
-    Serial.println("WiFi disconnected");
+    Serial.println(F("WiFi disconnected"));
   }
 
-  Serial.print("Attempting to connect to WiFi SSID: ");
+  Serial.print(F("Attempting to connect to WiFi SSID: "));
   Serial.println(WIFI_SSID);
 
 #ifdef ARDUINO_ARCH_ESP32
@@ -212,36 +219,73 @@ void WiFiManager::connect()
   _status = WL_CONNECTED;
 
   Serial.println();
-  Serial.println("WiFi connected successfully!");
-  Serial.print("SSID: ");
+  Serial.println(F("WiFi connected successfully!"));
+  Serial.print(F("SSID: "));
   Serial.println(WiFi.SSID());
 
 #ifdef ARDUINO_ARCH_ESP32
-  Serial.print("BSSID: ");
+  Serial.print(F("BSSID: "));
   Serial.println(WiFi.BSSIDstr());
 #else
   uint8_t mac[WL_MAC_ADDR_LENGTH];
   WiFi.BSSID(mac);
-  Serial.print("BSSID: ");
+  Serial.print(F("BSSID: "));
   printMacAddress(mac);
   Serial.println();
 #endif
 
-  Serial.print("Signal strength (RSSI): ");
+  Serial.print(F("Signal strength (RSSI): "));
   Serial.print(WiFi.RSSI());
-  Serial.println(" dBm");
+  Serial.println(F(" dBm"));
 
-  Serial.print("IP Address: ");
+  Serial.print(F("IP Address: "));
   Serial.println(WiFi.localIP());
 
 #ifdef ARDUINO_ARCH_ESP32
-  Serial.print("MAC address: ");
+  Serial.print(F("MAC address: "));
   Serial.println(WiFi.macAddress());
 #else
   WiFi.macAddress(mac);
-  Serial.print("MAC address: ");
+  Serial.print(F("MAC address: "));
   printMacAddress(mac);
   Serial.println();
+#endif
+
+#if SYNC_TIME
+  Serial.println(F("Syncing time with NTP server ..."));
+#if defined(ARDUINO_ARCH_ESP32)
+  // No timezone consideration for simplicity, display tools can handle it
+  configTime(0, 0, NTP_SERVER_1, NTP_SERVER_2, NTP_SERVER_3);
+#elif defined(ARDUINO_UNOR4_WIFI)
+  RTCTime now(WiFi.getTime());
+  if (!RTC.setTime(now))
+  {
+    Serial.print(F("Failed to set RTC time. Possibly a WiFi issue. Received: "));
+    Serial.println(now.toString());
+  }
+#else
+  Serial.println(F("NTP sync not supported on this board."));
+#endif
+#endif
+}
+
+bool WiFiManager::getCurrentTime(struct tm *info)
+{
+#if defined(ARDUINO_ARCH_ESP32)
+  return getLocalTime(info);
+#elif defined(ARDUINO_UNOR4_WIFI)
+  RTCTime now;
+  if (RTC.getTime(now))
+  {
+    tm time = now.getTmTime();
+    memcpy(info, &time, sizeof(tm));
+    return true;
+  }
+  return false;
+#else
+  time_t now = 0;
+  localtime_r(&now, info);
+  return false;
 #endif
 }
 

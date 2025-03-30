@@ -2,6 +2,8 @@
 #define SENSORS_H
 
 #include <stdint.h>
+#include <time.h>
+
 #include "config.h"
 
 #ifdef HAVE_EC
@@ -52,7 +54,7 @@ struct FuFarmSensorsData
     float wet;
   } temperature;
 
-  // measured in ms/cm
+  // measured in mS/cm
   float ec;
   float ph;
 
