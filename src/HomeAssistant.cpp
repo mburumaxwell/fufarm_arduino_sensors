@@ -24,25 +24,26 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
   light("light"),
 #endif
 #if defined(HAVE_DHT22) || defined(HAVE_AHT20)
-  temperature("temperature"), humidity("humidity"),
+  temperature("temperature", HASensorNumber::PrecisionP2),
+  humidity("humidity", HASensorNumber::PrecisionP2),
 #endif
 #ifdef HAVE_ENS160
   aqi("aqi"), tvoc("tvoc"), eco2("eco2"),
 #endif
 #ifdef HAVE_FLOW
-  flow("flow"),
+  flow("flow", HASensorNumber::PrecisionP2),
 #endif
 #ifdef HAVE_TEMP_WET
-  liquidtemp("liquidtemp"),
+  liquidtemp("liquidtemp", HASensorNumber::PrecisionP2),
 #endif
 #ifdef HAVE_CO2
   co2("co2"),
 #endif
 #ifdef HAVE_EC
-  ec("ec"),
+  ec("ec", HASensorNumber::PrecisionP2),
 #endif
 #ifdef HAVE_PH
-  ph("ph"),
+  ph("ph", HASensorNumber::PrecisionP2),
 #endif
 #ifdef HAVE_MOISTURE
   moisture("moisture"),
@@ -67,45 +68,62 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
   // Setup sensors with the relevant information
   // Device classes are listed at https://www.home-assistant.io/integrations/sensor/#device-class
 #ifdef HAVE_WATER_LEVEL_STATE
-  // TODO: find a better device class for this
   waterLevel.setDeviceClass("moisture");
+  waterLevel.setIcon("mdi:cup-water");
+  waterLevel.setName("Sump Level Indicator");
   waterLevel.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_LIGHT
+  // TODO: the sensor we are using does not support lux, we may want to consider using a custom class
   light.setDeviceClass("illuminance");
+  light.setUnitOfMeasurement("lx");
   light.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #if defined(HAVE_DHT22) || defined(HAVE_AHT20)
   temperature.setDeviceClass("temperature");
+  temperature.setUnitOfMeasurement("°C");
   temperature.setExpireAfter(EXPIRE_AFTER_SECONDS);
 
   humidity.setDeviceClass("humidity");
+  humidity.setUnitOfMeasurement("%");
   humidity.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_ENS160
   aqi.setDeviceClass("aqi");
   aqi.setExpireAfter(EXPIRE_AFTER_SECONDS);
+  // no need to set unit for AQI, it is documented as unitless
 
   tvoc.setDeviceClass("volatile_organic_compounds_parts");
+  tvoc.setUnitOfMeasurement("ppb");
   tvoc.setExpireAfter(EXPIRE_AFTER_SECONDS);
 
   eco2.setDeviceClass("carbon_dioxide");
+  eco2.setName("Carbon Dioxide (Equivalent)");
+  eco2.setUnitOfMeasurement("ppm");
   eco2.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_FLOW
   flow.setDeviceClass("volume_flow_rate");
+  flow.setIcon("mdi:waves-arrow-right"); // default icon is unknown so we set ours
+  flow.setUnitOfMeasurement("L/min");
   flow.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_TEMP_WET
   liquidtemp.setDeviceClass("temperature");
+  liquidtemp.setName("Liquid Temperature");
+  liquidtemp.setUnitOfMeasurement("°C");
   liquidtemp.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_CO2
   co2.setDeviceClass("carbon_dioxide");
+  co2.setUnitOfMeasurement("ppm");
   co2.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_EC
-  ec.setDeviceClass("ec");
+  // As of 2025-Mar-28, Home Assistant does not have a device class for EC, we create a custom one
+  ec.setIcon("mdi:waveform");
+  ec.setName("Electrical Conductivity");
+  ec.setUnitOfMeasurement("ms/cm");
   ec.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_PH
@@ -114,6 +132,7 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
 #endif
 #ifdef HAVE_MOISTURE
   moisture.setDeviceClass("moisture");
+  moisture.setUnitOfMeasurement("%");
   moisture.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 }

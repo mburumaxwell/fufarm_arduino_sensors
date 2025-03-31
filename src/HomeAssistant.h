@@ -8,6 +8,10 @@
 #include <ArduinoHA.h>
 #include "sensors.h"
 
+/**
+ * This class is a wrapper for the Home Assistant logic.
+ * It is where all the Home Assistant related code is located.
+ */
 class FuFarmHomeAssistant
 {
 public:
@@ -40,6 +44,7 @@ public:
 
   /**
    * Sets parameters of the MQTT connection using the IP address and port.
+   * Also sets device_class, units, expiry, and other properties of each sensor.
    * Connection to the broker will be done in the first loop cycle.
    * This class automatically reconnects to the broker if connection is lost.
    *
@@ -49,6 +54,7 @@ public:
 
   /**
    * Sets parameters of the MQTT connection using the IP address and port.
+   * Also sets device_class, units, expiry, and other properties of each sensor.
    * Connection to the broker will be done in the first loop cycle.
    * This class automatically reconnects to the broker if connection is lost.
    *
