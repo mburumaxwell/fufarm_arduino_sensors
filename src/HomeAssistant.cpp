@@ -18,35 +18,37 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
 // They should be unique for the device and are required by the library.
 // We can probably find a better source but this works for the moment.
 #ifdef HAVE_WATER_LEVEL_STATE
-  waterLevel("waterLevel"),
+  waterLevel(HOME_ASSISTANT_DEVICE_NAME"_waterLevel"),
 #endif
 #ifdef HAVE_LIGHT
-  light("light"),
+  light(HOME_ASSISTANT_DEVICE_NAME"_light"),
 #endif
 #if defined(HAVE_DHT22) || defined(HAVE_AHT20)
-  temperature("temperature", HASensorNumber::PrecisionP2),
-  humidity("humidity", HASensorNumber::PrecisionP2),
+  temperature(HOME_ASSISTANT_DEVICE_NAME"_temperature", HASensorNumber::PrecisionP2),
+  humidity(HOME_ASSISTANT_DEVICE_NAME"_humidity", HASensorNumber::PrecisionP2),
 #endif
 #ifdef HAVE_ENS160
-  aqi("aqi"), tvoc("tvoc"), eco2("eco2"),
+  aqi(HOME_ASSISTANT_DEVICE_NAME"_aqi"),
+  tvoc(HOME_ASSISTANT_DEVICE_NAME"_tvoc"),
+  eco2(HOME_ASSISTANT_DEVICE_NAME"_eco2"),
 #endif
 #ifdef HAVE_FLOW
-  flow("flow", HASensorNumber::PrecisionP2),
+  flow(HOME_ASSISTANT_DEVICE_NAME"_flow", HASensorNumber::PrecisionP2),
 #endif
 #ifdef HAVE_TEMP_WET
-  liquidtemp("liquidtemp", HASensorNumber::PrecisionP2),
+  liquidtemp(HOME_ASSISTANT_DEVICE_NAME"_liquidtemp", HASensorNumber::PrecisionP2),
 #endif
 #ifdef HAVE_CO2
-  co2("co2"),
+  co2(HOME_ASSISTANT_DEVICE_NAME"_co2"),
 #endif
 #ifdef HAVE_EC
-  ec("ec", HASensorNumber::PrecisionP2),
+  ec(HOME_ASSISTANT_DEVICE_NAME"_ec", HASensorNumber::PrecisionP2),
 #endif
 #ifdef HAVE_PH
-  ph("ph", HASensorNumber::PrecisionP2),
+  ph(HOME_ASSISTANT_DEVICE_NAME"_ph", HASensorNumber::PrecisionP2),
 #endif
 #ifdef HAVE_MOISTURE
-  moisture("moisture"),
+  moisture(HOME_ASSISTANT_DEVICE_NAME"_moisture"),
 #endif
   mqtt(client, device)
 {
