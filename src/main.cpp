@@ -159,3 +159,8 @@ void loop()
   // Updating of sensor values happens over a longer delay by checking elapsed time above.
   delay(500);
 }
+
+void beforeReset()
+{
+  // TODO: save configuration and/or state so that we can resume after reboot (will be useful with auto dosing)
+}
