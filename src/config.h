@@ -4,6 +4,9 @@
 // // Uncomment to skip WiFi connection for testing sensors
 // #define HAVE_WIFI 0
 
+// The amount of time to wait for a WiFi connection before rebooting
+#define WIFI_CONNECTION_REBOOT_TIMEOUT_MILLIS 15000 // 15 seconds
+
 #ifdef SENSORS_LIGHT_PIN
   #define HAVE_LIGHT
 #endif

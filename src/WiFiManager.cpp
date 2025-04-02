@@ -2,6 +2,8 @@
 
 #if HAVE_WIFI
 
+#include "reboot.h"
+
 #ifdef ARDUINO_ESP32S3_DEV
 #include "esp_eap_client.h"
 #endif
@@ -194,8 +196,15 @@ void WiFiManager::connect()
   status = WiFi.begin(WIFI_SSID);
 #endif
 
+  unsigned long started = millis();
   while (status != WL_CONNECTED)
   {
+    // Timeout reached – perform a reset
+    if ((millis() - started) > WIFI_CONNECTION_REBOOT_TIMEOUT_MILLIS) {
+      Serial.println(" taken too long. Rebooting ....");
+      reboot();
+    }
+
     delay(500);
     Serial.print(".");
     status = WiFi.status();
