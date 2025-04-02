@@ -27,7 +27,7 @@ WiFiClient wifiClient;
 #endif
 FuFarmHomeAssistant ha(wifiClient);
 #else
-StaticJsonDocument<200> doc;
+JsonDocument doc;
 #endif
 
 void setup()
