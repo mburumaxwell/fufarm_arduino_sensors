@@ -8,7 +8,7 @@
 #include <avr/wdt.h>
 #endif
 
-void reboot()
+__attribute__((noreturn)) void reboot()
 {
   beforeReset();  // do housekeeping before rebooting
 
