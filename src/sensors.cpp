@@ -4,7 +4,7 @@
 
 // Will be different depending on the reference voltage.
 // We use float to avoid integer overflow.
-#if defined(ARDUINO_ESP32S3_DEV)
+#if defined(ARDUINO_ARCH_ESP32)
 // nothing to set there because it supports reading in millivolts
 #elif defined(ARDUINO_UNOR4_WIFI)
 #define ANALOG_REFERENCE_MILLI_VOLTS 5000.0f
@@ -15,7 +15,7 @@
 #endif
 
 // to avoid possible loss of precision, multiply before dividing
-#if defined(ARDUINO_ESP32S3_DEV)
+#if defined(ARDUINO_ARCH_ESP32)
 #define ANALOG_READ_MILLI_VOLTS(pin) (analogReadMilliVolts(pin))
 #else
 #define ANALOG_READ_MILLI_VOLTS(pin) ((analogRead(pin) * ANALOG_REFERENCE_MILLI_VOLTS) / ANALOG_MAX_VALUE)

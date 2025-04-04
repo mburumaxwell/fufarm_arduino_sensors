@@ -37,7 +37,7 @@
   // For this flow sensor, only interrupt pins should be used. Configured on a rising edge
   // https://reference.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/
 
-  #if defined(ARDUINO_ESP32S3_DEV) // all pins
+  #if defined(ARDUINO_ARCH_ESP32) // all pins
   #elif defined(ARDUINO_AVR_LEONARDO) // only 0, 1, 2, 3, 7
     #if SENSORS_SEN0217_PIN == 0
     #elif SENSORS_SEN0217_PIN == 1
@@ -96,7 +96,7 @@
 
 // WiFi
 #ifndef HAVE_WIFI
-#if defined(ARDUINO_ESP32S3_DEV) || defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_AVR_UNO_WIFI_REV2)
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_AVR_UNO_WIFI_REV2)
   #define HAVE_WIFI 1
 #else
   #define HAVE_WIFI 0
