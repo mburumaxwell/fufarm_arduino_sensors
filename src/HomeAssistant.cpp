@@ -54,12 +54,12 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
 {
   // set device's details
   device.setName(HOME_ASSISTANT_DEVICE_NAME);
-  device.setSoftwareVersion(HOME_ASSISTANT_DEVICE_SOFTWARE_VERSION);
-#ifdef HOME_ASSISTANT_DEVICE_MANUFACTURER
-  device.setManufacturer(HOME_ASSISTANT_DEVICE_MANUFACTURER);
+  device.setSoftwareVersion(DEVICE_SOFTWARE_VERSION);
+#ifdef DEVICE_MANUFACTURER
+  device.setManufacturer(DEVICE_MANUFACTURER);
 #endif
-#ifdef HOME_ASSISTANT_DEVICE_MODEL
-  device.setModel(HOME_ASSISTANT_DEVICE_MODEL);
+#ifdef DEVICE_MODEL
+  device.setModel(DEVICE_MODEL);
 #endif
 
   // set MQTT properties
