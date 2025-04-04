@@ -6,6 +6,7 @@
 
 #ifdef ARDUINO_ESP32S3_DEV
 #include "esp_eap_client.h"
+#include <ESPmDNS.h>
 #endif
 
 WiFiManager::WiFiManager() : _status(WL_IDLE_STATUS)
@@ -242,6 +243,42 @@ void WiFiManager::connect()
   Serial.print("MAC address: ");
   printMacAddress(mac);
   Serial.println();
+#endif
+
+#ifdef ARDUINO_ARCH_ESP32
+#if USE_HOME_ASSISTANT
+  // setup mDNS responder
+  if (!MDNS.begin("WIFI_SSID" + WiFi.macAddress()))
+  {
+    Serial.println("Error setting up MDNS responder!");
+    reboot();
+  }
+
+  // searching for MQTT installation on Home Assistant but we can't find it
+  // instead we find the IP and choose the default port we know
+  Serial.println(F("Browsing for service _home-assistant._tcp.local. ... "));
+  int n = MDNS.queryService(F("home-assistant"), F("tcp"));
+  if (n == 0)
+  {
+    Serial.println("No Home Assistant installation found. Will use defaults");
+  }
+  else if (n > 1)
+  {
+    Serial.println("Multiple Home Assistant installation found. Will use defaults");
+  }
+  else
+  {
+    Serial.print(F("Found Home Assistant installation at --> "));
+    Serial.print(MDNS.hostname(0));
+    Serial.print(F(":"));
+    Serial.print(MDNS.port(0));
+    Serial.print(F(" ("));
+    Serial.print(MDNS.address(0));
+    Serial.print(F(":"));
+    Serial.print(MDNS.port(0));
+    Serial.println(F(")"));
+  }
+#endif
 #endif
 }
 
