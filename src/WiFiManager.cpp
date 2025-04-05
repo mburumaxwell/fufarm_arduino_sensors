@@ -4,7 +4,7 @@
 
 #include "reboot.h"
 
-#ifdef ARDUINO_ESP32S3_DEV
+#ifdef ARDUINO_ARCH_ESP32
 #include "esp_eap_client.h"
 #endif
 
@@ -18,7 +18,7 @@ WiFiManager::~WiFiManager()
 
 void WiFiManager::begin()
 {
-#ifndef ARDUINO_ESP32S3_DEV
+#ifndef ARDUINO_ARCH_ESP32
   // check if the WiFi module is present
   if (WiFi.status() == WL_NO_MODULE)
   {
@@ -35,7 +35,7 @@ void WiFiManager::begin()
   }
 #endif
 
-#ifdef ARDUINO_ESP32S3_DEV
+#ifdef ARDUINO_ARCH_ESP32
   // Set WiFi to station mode and disconnect from an AP if it was previously connected.
   WiFi.mode(WIFI_STA);
 #endif
@@ -51,7 +51,7 @@ void WiFiManager::maintain()
   connect();
 }
 
-#ifndef ARDUINO_ESP32S3_DEV
+#ifndef ARDUINO_ARCH_ESP32
 void WiFiManager::printMacAddress(uint8_t mac[])
 {
   for (int i = 5; i >= 0; i--)
@@ -69,7 +69,7 @@ void WiFiManager::printMacAddress(uint8_t mac[])
 }
 #endif
 
-#ifdef ARDUINO_ESP32S3_DEV
+#ifdef ARDUINO_ARCH_ESP32
 const __FlashStringHelper *encryptionTypeToString(wifi_auth_mode_t mode)
 {
   switch (mode)
@@ -146,7 +146,7 @@ void WiFiManager::listNetworks()
   Serial.println();
 
   // Delete the scan result to free memory for code below.
-#ifdef ARDUINO_ESP32S3_DEV
+#ifdef ARDUINO_ARCH_ESP32
   WiFi.scanDelete();
 #endif
 }
@@ -169,7 +169,7 @@ void WiFiManager::connect()
   Serial.print("Attempting to connect to WiFi SSID: ");
   Serial.println(WIFI_SSID);
 
-#ifdef ARDUINO_ESP32S3_DEV
+#ifdef ARDUINO_ARCH_ESP32
 #if defined(WIFI_ENTERPRISE_IDENTITY)
   esp_eap_client_set_identity((uint8_t *)WIFI_ENTERPRISE_IDENTITY, strlen(WIFI_ENTERPRISE_IDENTITY));
 #endif
@@ -184,7 +184,7 @@ void WiFiManager::connect()
 #endif
 #endif
 
-#if defined(WIFI_ENTERPRISE_PASSWORD) && !defined(ARDUINO_ESP32S3_DEV)
+#if defined(WIFI_ENTERPRISE_PASSWORD) && !defined(ARDUINO_ARCH_ESP32)
   status = WiFi.beginEnterprise(WIFI_SSID,
                                 WIFI_ENTERPRISE_USERNAME,
                                 WIFI_ENTERPRISE_PASSWORD,
@@ -216,7 +216,7 @@ void WiFiManager::connect()
   Serial.print("SSID: ");
   Serial.println(WiFi.SSID());
 
-#ifdef ARDUINO_ESP32S3_DEV
+#ifdef ARDUINO_ARCH_ESP32
   Serial.print("BSSID: ");
   Serial.println(WiFi.BSSIDstr());
 #else
@@ -234,7 +234,7 @@ void WiFiManager::connect()
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
 
-#ifdef ARDUINO_ESP32S3_DEV
+#ifdef ARDUINO_ARCH_ESP32
   Serial.print("MAC address: ");
   Serial.println(WiFi.macAddress());
 #else

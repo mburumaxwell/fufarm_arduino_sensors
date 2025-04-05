@@ -40,7 +40,7 @@ private:
   uint8_t _status;
 
 private:
-#ifndef ARDUINO_ESP32S3_DEV
+#ifndef ARDUINO_ARCH_ESP32
   void printMacAddress(uint8_t mac[]);
 #endif
   void listNetworks();
