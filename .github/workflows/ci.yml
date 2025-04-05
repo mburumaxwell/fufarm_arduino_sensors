@@ -73,8 +73,8 @@ jobs:
       - name: Create firmware folder
         run: |
           mkdir -p firmware
-          cp ${{ github.workspace }}/.pio/build/esp32-s3-devkitc-1-n16r8v/firmware.elf ${{ github.workspace }}/firmware/esp32-s3-devkitc-1-n16r8v.elf
-          cp ${{ github.workspace }}/.pio/build/esp32-s3-devkitc-1-n16r8v/firmware.bin ${{ github.workspace }}/firmware/esp32-s3-devkitc-1-n16r8v.bin
+          cp ${{ github.workspace }}/.pio/build/esp32-s3-devkitc1-n16r8/firmware.elf ${{ github.workspace }}/firmware/esp32-s3-devkitc1-n16r8.elf
+          cp ${{ github.workspace }}/.pio/build/esp32-s3-devkitc1-n16r8/firmware.bin ${{ github.workspace }}/firmware/esp32-s3-devkitc1-n16r8.bin
           cp ${{ github.workspace }}/.pio/build/leonardo/firmware.elf ${{ github.workspace }}/firmware/leonardo.elf
           cp ${{ github.workspace }}/.pio/build/leonardo/firmware.hex ${{ github.workspace }}/firmware/leonardo.hex
           cp ${{ github.workspace }}/.pio/build/uno_r4_wifi/firmware.elf ${{ github.workspace }}/firmware/uno_r4_wifi.elf
