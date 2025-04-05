@@ -8,13 +8,13 @@ if [ $# -ne 1 ]; then
     exit 1;
 fi
 
-if [ $0 = "leonardo" ]
+if [ $1 = "leonardo" ]
 then
     board=leonardo
-elif [ $0 = "uno_r4_wifi" ]
+elif [ $1 = "uno_r4_wifi" ]
 then
     board=uno_r4_wifi
-elif [ $0 = "uno_wifi_rev2" ]
+elif [ $1 = "uno_wifi_rev2" ]
 then
     board=uno_wifi_rev2
 else
@@ -30,6 +30,7 @@ else
   echo Cannot find valid tty file
   exit 1
 fi
+echo Using terminal: $atty
 
 # Command format is pio run --environment {env-name}
 pio run --environment $board
@@ -47,3 +48,4 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Done"
+echo "To monitor the serial console run:  pio device monitor"
