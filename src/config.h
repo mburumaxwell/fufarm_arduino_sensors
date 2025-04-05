@@ -128,10 +128,14 @@
   #define USE_HOME_ASSISTANT 0
 #endif
 
+#include <Version.h>
+#ifndef DEVICE_SOFTWARE_VERSION
+#define DEVICE_SOFTWARE_VERSION "0.1.0"
+#endif
+#define DEVICE_MANUFACTURER "Farm Urban"
+#define DEVICE_MODEL "Distributed Farm"
+
 #if USE_HOME_ASSISTANT
-  #define HOME_ASSISTANT_DEVICE_SOFTWARE_VERSION "0.1.0"
-	#define HOME_ASSISTANT_DEVICE_MANUFACTURER "Farm Urban"
-	#define HOME_ASSISTANT_DEVICE_MODEL "Distributed Farm"
   #define HOME_ASSISTANT_DISCOVERY_PREFIX "homeassistant"
   #define HOME_ASSISTANT_DATA_PREFIX "homeassistant"
   #define HOME_ASSISTANT_MQTT_KEEPALIVE 90

@@ -33,6 +33,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for GitVersion
+          fetch-tags: true # Required for GitVersion
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v3
+        with:
+          versionSpec: '6.0.x'
+
+      - name: Determine Version
+        uses: gittools/actions/gitversion/execute@v3
+        id: gitversion
+        with:
+          useConfigFile: true
 
       - name: Cache
         uses: actions/cache@v4

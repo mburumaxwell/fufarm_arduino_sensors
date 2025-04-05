@@ -1,0 +1,7 @@
+# To get the effective configuration run 'gitversion /showconfig'
+assembly-informational-format: '{FullSemVer}+{Sha}'
+branches:
+  pull-request:
+    label: pr
+  main:
+    label: ci
