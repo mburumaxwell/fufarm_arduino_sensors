@@ -13,8 +13,8 @@ Other boards might be added with time, if need be. However, should you need to t
 
 You can comment/uncomment, one of the lines under `platformio` in the configuration file to target just one which is easier/faster for local use. Otherwise the commands you need are
 
-| Name/Action                   | Command Format                                        | Example                                               |
-| ----------------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
+| Name/Action             | Command Format                                        | Example                                               |
+| ----------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
 | Build (default boards)  |                                                       | `pio run`                                             |
 | Build (specific board)  | `pio run --environment {env-name}`                    | `pio run --environment uno_wifi_rev2`                 |
 | Upload (specific board) | `pio run --environment {env-name} --target upload`    | `pio run --environment uno_wifi_rev2 --target upload` |
@@ -93,3 +93,65 @@ For simplicity doing calibration and to allow you recalibrate on the fly, you ca
 ## Data Transmission
 
 The code base supports either sending data to Home Assistant (MQTT) or printing out JSON via Serial. Data is sent to HomeAssistant, if the board has network support (e.g. WiFi). HomeAssistant is capable enough to replay the information to any other destination including InfluxDB (which we used to support in this repository).
+
+## Setup with Arduino Shield for Raspberry Pi and Home Assistant
+
+If using the Gravity [DFR0327 Arduino Shield for Raspberry Pi](https://www.dfrobot.com/product-1211.html) and Home Assistant, communication between the Arduino and Raspberry Pi are via the serial terminal, and the data is sent to Home Assistant via [MQTT-IO](https://github.com/flyte/mqtt-io).
+
+There are several steps to get this working:
+
+1. Checkout this repository (into `/opt` in this example), cd into the directory created and edit `platform.ini` to specify the sensors in use.
+2. Install platformio with:
+
+```
+url -fsSL -o get-platformio.py https://raw.githubusercontent.com/platformio/platformio-core-installer/master/get-platformio.py
+python3 get-platformio.py
+mkdir ~/.local/bin
+ln -s ~/.platformio/penv/bin/platformio ~/.local/bin/platformio
+ln -s ~/.platformio/penv/bin/pio ~/.local/bin/pio
+ln -s ~/.platformio/penv/bin/piodebuggdb ~/.local/bin/piodebuggdb
+```
+
+3. Build and upload the code to the arduino with: `./upload.sh leonardo`
+4. Create a python virtual environment to host mqtt-io:
+
+```
+python -m venv venv
+. ./venv/bin/activate
+pip install mqtt-io
+```
+
+5. Edit the `mqtt-io.yml` in this directory for your system. Ensure you add the MQTT broker and password, and that the stream_modules device matches the device used by `upload.sh` in step 2.
+
+6. Create a systemd file to start monitoring the serial stream, for example:
+
+```
+sudo cat > /etc/systemd/system/fusensors.service <<EOF
+[Unit]
+After=tailscaled.service
+
+[Service]
+WorkingDirectory=/opt/fufarm_arduino_sensors
+ExecStart=/opt/fufarm_arduino_sensors/venv/bin/python3 -m mqtt_io ./mqtt-io.yml
+Restart=always
+StandardOutput=append:/opt/fufarm_arduino_sensors/poll.log
+StandardError=inherit
+SyslogIdentifier=fusensors
+User=fu
+Group=fu
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable fusensors
+sudo systemctl start fusensors
+
+```
+
+7. Create an `mqtt.yml` file in Home Assistant to expose the sensors from the Arduino. An example file is included in the root of this repository. This can be added to the Home Assistant `configuration.yaml` file as shown below:
+
+```
+mqtt: !include mqtt.yml
+```

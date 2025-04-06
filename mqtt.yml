@@ -1,0 +1,53 @@
+- sensor:
+    unique_id: farm_temp
+    name: "Farm Temp"
+    state_topic: "sensors/stream/rpiarduino"
+    device_class: "temperature"
+    unit_of_measurement: '°C'
+    expire_after: 120
+    value_template: "{{ value_json.tempair | float(-999) }}"
+
+- sensor:
+    unique_id: farm_humidity
+    name: "Farm Humidity"
+    state_topic: "sensors/stream/rpiarduino"
+    device_class: "humidity"
+    unit_of_measurement: '%'
+    expire_after: 120
+    value_template: "{{ value_json.humidity | float(-1) }}"
+
+- sensor:
+    unique_id: farm_light
+    name: "Farm Light"
+    state_topic: "sensors/stream/rpiarduino"
+    device_class: "illuminance"
+    unit_of_measurement: 'lx'
+    expire_after: 120
+    value_template: "{{ value_json.light | float(-1) }}"
+
+- sensor:
+    unique_id: farm_co2
+    name: "Farm CO2"
+    state_topic: "sensors/stream/rpiarduino"
+    device_class: "carbon_dioxide"
+    unit_of_measurement: 'ppm'
+    expire_after: 120
+    value_template: "{{ value_json.co2 | float(-999) }}"
+
+- sensor:
+    unique_id: farm_flow
+    name: "Sump flow rate"
+    state_topic: "sensors/stream/rpiarduino"
+    device_class: "volume_flow_rate"
+    unit_of_measurement: "L/min"
+    expire_after: 120
+    value_template: "{{ value_json.flow | float(-999) }}"
+
+- binary_sensor:
+    unique_id: sump_level
+    name: "Sump Level Sensor"
+    device_class: "moisture"
+    state_topic: "sensors/stream/rpiarduino"
+    payload_on: "True"
+    payload_off: "False"
+    value_template: "{{ value_json.water_level }}"
