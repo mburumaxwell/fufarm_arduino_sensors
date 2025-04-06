@@ -48,4 +48,4 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Done"
-echo "To monitor the serial console run:  pio device monitor"
+echo "To monitor the serial console run:  pio device monitor --environment $board"
