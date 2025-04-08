@@ -58,6 +58,7 @@ There are a number of sensors used in the farm for different purposes.
 | SEN0217  | Flow Sensor                    | 3   | SENSORS_SEN0217_PIN  | HAVE_FLOW              |
 | DS18S20  | Temperature (Wet)              | 4   | SENSORS_DS18S20_PIN  | HAVE_TEMP_WET          |
 | SEN0204  | Water Level Sensor             | 5   | SENSORS_SEN0204_PIN  | HAVE_WATER_LEVEL_STATE |
+| DRF0523  | Digital Peristaltic Pump       | 9   | PUMP_EC_DOSING_PIN   | HAVE_EC_DOSING         |
 | AHT20    | Humidity and Temperature (Air) | I2C | HAVE_AHT20           | HAVE_AHT20             |
 | ENS160   | Air Quality & Multi Gas        | I2C | HAVE_ENS160          | HAVE_ENS160            |
 
@@ -103,55 +104,54 @@ There are several steps to get this working:
 1. Checkout this repository (into `/opt` in this example), cd into the directory created and edit `platform.ini` to specify the sensors in use.
 2. Install platformio with:
 
-```
-url -fsSL -o get-platformio.py https://raw.githubusercontent.com/platformio/platformio-core-installer/master/get-platformio.py
-python3 get-platformio.py
-mkdir ~/.local/bin
-ln -s ~/.platformio/penv/bin/platformio ~/.local/bin/platformio
-ln -s ~/.platformio/penv/bin/pio ~/.local/bin/pio
-ln -s ~/.platformio/penv/bin/piodebuggdb ~/.local/bin/piodebuggdb
-```
+   ```bash
+   url -fsSL -o get-platformio.py https://raw.githubusercontent.com/platformio/platformio-core-installer/master/get-platformio.py
+   python3 get-platformio.py
+   mkdir ~/.local/bin
+   ln -s ~/.platformio/penv/bin/platformio ~/.local/bin/platformio
+   ln -s ~/.platformio/penv/bin/pio ~/.local/bin/pio
+   ln -s ~/.platformio/penv/bin/piodebuggdb ~/.local/bin/piodebuggdb
+   ```
 
 3. Build and upload the code to the arduino with: `./upload.sh leonardo`
 4. Create a python virtual environment to host mqtt-io:
 
-```
-python -m venv venv
-. ./venv/bin/activate
-pip install mqtt-io
-```
+   ```bash
+   python -m venv venv
+   . ./venv/bin/activate
+   pip install mqtt-io
+   ```
 
 5. Edit the `mqtt-io.yml` in this directory for your system. Ensure you add the MQTT broker and password, and that the stream_modules device matches the device used by `upload.sh` in step 2.
 
 6. Create a systemd file to start monitoring the serial stream, for example:
 
-```
-sudo cat > /etc/systemd/system/fusensors.service <<EOF
-[Unit]
-After=tailscaled.service
+   ```bash
+   sudo cat > /etc/systemd/system/fusensors.service <<EOF
+   [Unit]
+   After=tailscaled.service
 
-[Service]
-WorkingDirectory=/opt/fufarm_arduino_sensors
-ExecStart=/opt/fufarm_arduino_sensors/venv/bin/python3 -m mqtt_io ./mqtt-io.yml
-Restart=always
-StandardOutput=append:/opt/fufarm_arduino_sensors/poll.log
-StandardError=inherit
-SyslogIdentifier=fusensors
-User=fu
-Group=fu
+   [Service]
+   WorkingDirectory=/opt/fufarm_arduino_sensors
+   ExecStart=/opt/fufarm_arduino_sensors/venv/bin/python3 -m mqtt_io ./mqtt-io.yml
+   Restart=always
+   StandardOutput=append:/opt/fufarm_arduino_sensors/poll.log
+   StandardError=inherit
+   SyslogIdentifier=fusensors
+   User=fu
+   Group=fu
 
-[Install]
-WantedBy=multi-user.target
-EOF
+   [Install]
+   WantedBy=multi-user.target
+   EOF
 
-sudo systemctl daemon-reload
-sudo systemctl enable fusensors
-sudo systemctl start fusensors
-
-```
+   sudo systemctl daemon-reload
+   sudo systemctl enable fusensors
+   sudo systemctl start fusensors
+   ```
 
 7. Create an `mqtt.yml` file in Home Assistant to expose the sensors from the Arduino. An example file is included in the root of this repository. This can be added to the Home Assistant `configuration.yaml` file as shown below:
 
-```
+```bash
 mqtt: !include mqtt.yml
 ```
