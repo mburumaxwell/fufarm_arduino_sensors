@@ -1,0 +1,9 @@
+# CODEOWNERS file for GitHub repository
+# Reference: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Why this is needed:
+# - Enables automated review requests (e.g., for Dependabot PRs)
+# - Helps maintain quality by ensuring that one of us reviews any PR
+
+# This line assigns the users as owners of all files, either one can review (not both)
+* @linucks @mburumaxwell
