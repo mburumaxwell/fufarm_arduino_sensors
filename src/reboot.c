@@ -18,13 +18,18 @@ __attribute__((noreturn)) void reboot()
 #elif defined(ARDUINO_UNOR4_WIFI)
   // For the Uno R4 WiFi: perform a system reset using the NVIC
   NVIC_SystemReset();
+#elif defined(ARDUINO_ARCH_MEGAAVR)
+  // ATmega4809 (e.g., Uno WiFi Rev2) WDT reset using direct register access
+  // From the section 11.5 – Configuration Change Protection (CCP).
+  // Unlocks protected writes for the next 4 CPU cycles.
+  // CCP must be set before WDT because setting WDT re-engages protection.
+  CPU_CCP = 0xD8; // D8 is a magic value not combination of individual flags
+  WDT.CTRLA = WDT_PERIOD_64CLK_gc; // Set timeout and enable watchdog
+  while (true) { }
 #else
-  // For AVR boards like the Uno WiFi Rev2: enable watchdog with a short timeout
+  // Classic AVR (e.g., Leonardo)
   wdt_enable(WDTO_15MS);
-  while (true)
-  {
-    // Wait for the watchdog to reset the board
-  }
+  while (true) { } // Wait for the watchdog to reset the board
 #endif
 }
 
