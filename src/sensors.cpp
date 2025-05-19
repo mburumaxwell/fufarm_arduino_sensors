@@ -49,6 +49,26 @@ FuFarmSensors::~FuFarmSensors()
   _instance = nullptr;
 }
 
+void FuFarmSensors::initialiseAHT20()
+{
+#if HAVE_AHT20
+  uint8_t status = -1, count = 0;
+  while ((status = aht20.begin()) != 0)
+  {
+    Serial.print("AHT20 sensor initialisation failed. Error status: ");
+    Serial.println(status);
+    count++;
+    if (count > 10)
+    {
+      Serial.println("Could not initialise AHT20 sensor - continuing without it");
+      break;
+    }
+    delay(1000);
+  }
+#endif
+}
+
+
 void FuFarmSensors::begin()
 {
 #if defined(HAVE_AHT20) || defined(HAVE_ENS160)
@@ -62,19 +82,7 @@ void FuFarmSensors::begin()
 #ifdef HAVE_DHT22
   dht.setup(SENSORS_DHT22_PIN, DHTesp::DHT22);
 #elif HAVE_AHT20
-  count = 0;
-  while ((status = aht20.begin()) != 0)
-  {
-    Serial.print("AHT20 sensor initialisation failed. Error status: ");
-    Serial.println(status);
-    count++;
-    if (count > 5)
-    {
-      Serial.println("Could not initialise AHT20 sensor - continuing without it");
-      break;
-    }
-    delay(1000);
-  }
+  initialiseAHT20();
 #endif
 
 #ifdef HAVE_ENS160
@@ -214,9 +222,11 @@ void FuFarmSensors::read(FuFarmSensorsData *dest)
   }
   else
   {
-    Serial.println("AHT20 sensor not ready");
+    Serial.println("AHT20 sensor not ready - resetting");
     airTemperature = dest->temperature.air = -1;
     dest->humidity = -1;
+    aht20.reset();
+    initialiseAHT20();
   }
 #else
   airTemperature = dest->temperature.air = -1;

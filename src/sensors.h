@@ -165,6 +165,7 @@ private:
   int32_t readMoisture();
   float readTempWet();
   bool readWaterLevelState();
+  void initialiseAHT20();
 
 private:
   char buffer[10];
