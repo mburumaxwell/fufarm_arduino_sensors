@@ -52,7 +52,7 @@ struct FuFarmSensorsData
     float wet;
   } temperature;
 
-  // measured in ms/cm
+  // measured in mS/cm
   float ec;
   float ph;
 

@@ -125,7 +125,7 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
   // As of 2025-Mar-28, Home Assistant does not have a device class for EC, we create a custom one
   ec.setIcon("mdi:waveform");
   ec.setName("Electrical Conductivity");
-  ec.setUnitOfMeasurement("ms/cm");
+  ec.setUnitOfMeasurement("mS/cm");
   ec.setExpireAfter(EXPIRE_AFTER_SECONDS);
 #endif
 #ifdef HAVE_PH
