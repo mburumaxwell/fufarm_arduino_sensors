@@ -77,7 +77,7 @@ The EC and pH sensor need calibration for the first time use or after not being 
 - [For pH](https://wiki.dfrobot.com/Gravity__Analog_pH_Sensor_Meter_Kit_V2_SKU_SEN0161-V2)
 - [For EC (K=1)](https://wiki.dfrobot.com/Gravity__Analog_Electrical_Conductivity_Sensor___Meter_V2__K%3D1__SKU_DFR0300)
 
-For simplicity doing calibration and to allow you recalibrate on the fly, you can use a toggle button or PCB fuse to short the calibration pin (defaults to 12) to ground. Calibration mode is exclusive and when in it, no data is collected or transmitted. When in this mode values will be printed on your Serial Monitor/Terminal every second (configurable in code), for example: `Temperature: 25.0 ^C EC: 1.41ms/cm pH: 7.12`. You can then issue calibration command via the same monitor or terminal.
+For simplicity doing calibration and to allow you recalibrate on the fly, you can use a toggle button or PCB fuse to short the calibration pin (defaults to 12) to ground. Calibration mode is exclusive and when in it, no data is collected or transmitted. When in this mode values will be printed on your Serial Monitor/Terminal every second (configurable in code), for example: `Temperature: 25.0 ^C EC: 1.41mS/cm pH: 7.12`. You can then issue calibration command via the same monitor or terminal.
 
 | Command   | Description                                                                                                                  |
 | --------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -85,7 +85,7 @@ For simplicity doing calibration and to allow you recalibrate on the fly, you ca
 | `calph`   | calibrate with the standard buffer solution, two buffer solutions(4.0 and 7.0) will be automatically recognized              |
 | `exitph`  | save the calibrated parameters and exit from calibration mode                                                                |
 | `enterec` | enter the calibration mode                                                                                                   |
-| `calec`   | calibrate with the standard buffer solution, two buffer solutions(1413us/cm and 12.88ms/cm) will be automatically recognized |
+| `calec`   | calibrate with the standard buffer solution, two buffer solutions(1413us/cm and 12.88mS/cm) will be automatically recognized |
 | `exitec`  | save the calibrated parameters and exit from calibration mode                                                                |
 | `clear`   | Clear EEPROM data                                                                                                            |
 

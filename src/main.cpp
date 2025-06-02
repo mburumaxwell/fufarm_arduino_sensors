@@ -65,7 +65,7 @@ void setup()
     Serial.println(F("exitph  -> save the calibrated parameters and exit from calibration mode"));
     Serial.println(F("Available commands for EC sensor:"));
     Serial.println(F("enterec -> enter the calibration mode"));
-    Serial.println(F("calec   -> calibrate with the standard buffer solution, two buffer solutions(1413us/cm and 12.88ms/cm) will be automatically recognized"));
+    Serial.println(F("calec   -> calibrate with the standard buffer solution, two buffer solutions(1413us/cm and 12.88mS/cm) will be automatically recognized"));
     Serial.println(F("exitec  -> save the calibrated parameters and exit from calibration mode"));
     return; // no further initialization can happen when in calibration mode
   }
