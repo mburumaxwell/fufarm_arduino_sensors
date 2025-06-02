@@ -55,12 +55,12 @@ void FuFarmSensors::initialiseAHT20()
   uint8_t status = -1, count = 0;
   while ((status = aht20.begin()) != 0)
   {
-    Serial.print("AHT20 sensor initialisation failed. Error status: ");
+    Serial.print(F("AHT20 sensor initialisation failed. Error status: "));
     Serial.println(status);
     count++;
     if (count > 10)
     {
-      Serial.println("Could not initialise AHT20 sensor - continuing without it");
+      Serial.println(F("Could not initialise AHT20 sensor - continuing without it"));
       break;
     }
     delay(1000);
@@ -89,12 +89,12 @@ void FuFarmSensors::begin()
   count = 0;
   while ((status = ens160.begin()) != NO_ERR)
   {
-    Serial.print("ENS160 sensor initialisation failed. Error status: ");
+    Serial.print(F("ENS160 sensor initialisation failed. Error status: "));
     Serial.println(status);
     count++;
     if (count > 5)
     {
-      Serial.println("Could not initialise ENS160 sensor - continuing without it");
+      Serial.println(F("Could not initialise ENS160 sensor - continuing without it"));
       break;
     }
     delay(1000);
@@ -222,7 +222,7 @@ void FuFarmSensors::read(FuFarmSensorsData *dest)
   }
   else
   {
-    Serial.println("AHT20 sensor not ready - resetting");
+    Serial.println(F("AHT20 sensor not ready - resetting"));
     airTemperature = dest->temperature.air = -1;
     dest->humidity = -1;
     aht20.reset();
@@ -240,13 +240,13 @@ void FuFarmSensors::read(FuFarmSensorsData *dest)
   }
   else
   {
-    Serial.println("Could not set air temperature and humidity for ENS160. Its values might not be accurate.");
+    Serial.println(F("Could not set air temperature and humidity for ENS160. Its values might not be accurate."));
   }
 
   uint8_t status = ens160.getENS160Status();
   if (status != DFRobot_ENS160::eSensorStatus_t::eNormalOperation)
   {
-    Serial.print("ENS160 is not yet in normal operation mode (initial phase can take upto 1 hour). Current mode: ");
+    Serial.print(F("ENS160 is not yet in normal operation mode (initial phase can take upto 1 hour). Current mode: "));
     Serial.println(status);
   }
   else
@@ -387,13 +387,13 @@ float FuFarmSensors::readTempWet()
 
   if (OneWire::crc8(addr, 7) != addr[7])
   {
-    // Serial.println("CRC is not valid!");
+    // Serial.println(F("CRC is not valid!"));
     return -1001;
   }
 
   if (addr[0] != 0x10 && addr[0] != 0x28)
   {
-    // Serial.print("Device is not recognized");
+    // Serial.print(F("Device is not recognized"));
     return -1002;
   }
 

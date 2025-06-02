@@ -84,7 +84,7 @@ void setup()
   uint8_t mac[6];
   WiFi.macAddress(mac);
   ha.setUniqueDeviceId(mac, sizeof(mac));
-  Serial.print("Home Assistant Unique Device ID: ");
+  Serial.print(F("Home Assistant Unique Device ID: "));
   Serial.println(ha.getUniqueId());
   ha.begin();
 
