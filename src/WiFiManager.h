@@ -43,7 +43,9 @@ private:
 #ifndef ARDUINO_ARCH_ESP32
   void printMacAddress(uint8_t mac[]);
 #endif
+#if !WIFI_SKIP_LIST_NETWORKS
   void listNetworks();
+#endif
   void connect();
 };
 
