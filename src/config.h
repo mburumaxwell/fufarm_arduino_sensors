@@ -68,6 +68,11 @@
   #define HAVE_TEMP_WET
 #endif
 
+#ifdef PUMP_EC_DOSING_PIN
+  #define HAVE_EC_DOSING
+  // Pin validation would be checking if the pin is a PWM pin
+#endif
+
 #ifdef CALIBRATION_TOGGLE_PIN
   #define SUPPORTS_CALIBRATION
 #endif
@@ -92,6 +97,10 @@
     !defined(HAVE_WATER_LEVEL_STATE) && !defined(HAVE_AHT20) && \
     !defined(HAVE_ENS160)
   #error "At least one sensor must be configured"
+#endif
+
+#if defined(HAVE_EC_DOSING) && !defined(HAVE_EC)
+  #error "EC dosing requires EC sensor to be configured."
 #endif
 
 // WiFi
@@ -152,6 +161,20 @@ extern const char root_ca_certs[];
   #if defined(ARDUINO_AVR_UNO_WIFI_REV2)
     #pragma "⚠️ Arduino Uno WiFi Rev2 may not work with self signed certificates for TLS."
   #endif
+#endif
+
+#if HAVE_WIFI && defined(HAVE_EC_DOSING)
+  #define SYNC_TIME 1
+#else
+  #define SYNC_TIME 0
+#endif
+
+#if SYNC_TIME
+// No timezone consideration for simplicity, display tools do a better job
+// and it allows deployment in different timezones without changing the code
+#define NTP_SERVER_1 "0.pool.ntp.org" // Global pool — auto-selects nearby servers worldwide
+#define NTP_SERVER_2 "1.pool.ntp.org" // Additional global redundancy
+#define NTP_SERVER_3 "ntp1.npl.co.uk" // UK atomic clock — precise when in/near UK
 #endif
 
 #endif // CONFIG_H

@@ -2,10 +2,13 @@
 
 #if HAVE_WIFI
 
+#include <time.h>
 #include "reboot.h"
 
 #ifdef ARDUINO_ARCH_ESP32
 #include "esp_eap_client.h"
+#elif defined(ARDUINO_UNOR4_WIFI)
+#include <RTC.h>
 #endif
 
 WiFiManager::WiFiManager() : _status(WL_IDLE_STATUS)
@@ -264,6 +267,43 @@ void WiFiManager::connect()
   Serial.print(F("MAC address: "));
   printMacAddress(mac);
   Serial.println();
+#endif
+
+#if SYNC_TIME
+  Serial.println(F("Syncing time with NTP server ..."));
+#if defined(ARDUINO_ARCH_ESP32)
+  // No timezone consideration for simplicity, display tools can handle it
+  configTime(0, 0, NTP_SERVER_1, NTP_SERVER_2, NTP_SERVER_3);
+#elif defined(ARDUINO_UNOR4_WIFI)
+  RTCTime now(WiFi.getTime());
+  if (!RTC.setTime(now))
+  {
+    Serial.print(F("Failed to set RTC time. Possibly a WiFi issue. Received: "));
+    Serial.println(now.toString());
+  }
+#else
+  Serial.println(F("NTP sync not supported on this board."));
+#endif
+#endif
+}
+
+bool WiFiManager::getCurrentTime(struct tm *info)
+{
+#if defined(ARDUINO_ARCH_ESP32)
+  return getLocalTime(info);
+#elif defined(ARDUINO_UNOR4_WIFI)
+  RTCTime now;
+  if (RTC.getTime(now))
+  {
+    tm time = now.getTmTime();
+    memcpy(info, &time, sizeof(tm));
+    return true;
+  }
+  return false;
+#else
+  time_t now = 0;
+  localtime_r(&now, info);
+  return false;
 #endif
 }
 

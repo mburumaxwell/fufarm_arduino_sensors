@@ -95,6 +95,10 @@ For simplicity doing calibration and to allow you recalibrate on the fly, you ca
 
 The code base supports either sending data to Home Assistant (MQTT) or printing out JSON via Serial. Data is sent to HomeAssistant, if the board has network support (e.g. WiFi). HomeAssistant is capable enough to replay the information to any other destination including InfluxDB (which we used to support in this repository).
 
+## Auto dosing
+
+This repository's code supports auto dosing with control from the Home Assistant dashboard. By default (and on every reboot), it is disabled, the target EC is 1.8 mS/cm, a 5-second dosing duration, and a 3-second equilibrium time. After the first dosing, you are able to see other information such as the last time it happened, number of times and so on.
+
 ## Setup with Arduino Shield for Raspberry Pi and Home Assistant
 
 If using the Gravity [DFR0327 Arduino Shield for Raspberry Pi](https://www.dfrobot.com/product-1211.html) and Home Assistant, communication between the Arduino and Raspberry Pi are via the serial terminal, and the data is sent to Home Assistant via [MQTT-IO](https://github.com/flyte/mqtt-io).

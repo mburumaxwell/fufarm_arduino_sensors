@@ -2,6 +2,8 @@
 #define SENSORS_H
 
 #include <stdint.h>
+#include <time.h>
+
 #include "config.h"
 
 #ifdef HAVE_EC

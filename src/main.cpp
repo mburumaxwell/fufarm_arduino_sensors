@@ -25,9 +25,24 @@ WiFiSSLClient wifiClient;
 #else
 WiFiClient wifiClient;
 #endif
+#if USE_HOME_ASSISTANT
 FuFarmHomeAssistant ha(wifiClient);
+#endif
 #else
 JsonDocument doc;
+#endif
+
+#ifdef HAVE_EC_DOSING
+#include "AutoDoser.h"
+
+// good default values for the auto dosing instead of having them as build flags
+static const FuFarmAutoDoserConfig autoDoserConfigDefault = {
+    .enabled = false,
+    .duration = 5,
+    .targetEc = 1.8f,
+    .equilibriumTime = 3,
+};
+FuFarmAutoDoser autoDoser(&autoDoserConfigDefault);
 #endif
 
 void setup()
@@ -81,12 +96,27 @@ void setup()
   wifiClient.setCACert(root_ca_certs);
 #endif
 
+#ifdef HAVE_EC_DOSING
+  autoDoser.begin();
+#if HAVE_WIFI
+  autoDoser.onCurrentTimeRequested([](tm *time) { wifiManager.getCurrentTime(time); });
+#endif
+#if USE_HOME_ASSISTANT
+  ha.onECAutoDosingConfigUpdated([](FuFarmAutoDoserConfig *config) { autoDoser.setConfig(config); });
+  ha.setInitialECAutoDosingValues(autoDoser.getConfig(), autoDoser.getState());
+  autoDoser.onStateUpdated([](FuFarmAutoDoserState *state) { ha.update(state); });
+#endif
+#endif
+
   uint8_t mac[6];
   WiFi.macAddress(mac);
+
+#if USE_HOME_ASSISTANT
   ha.setUniqueDeviceId(mac, sizeof(mac));
   Serial.print(F("Home Assistant Unique Device ID: "));
   Serial.println(ha.getUniqueId());
   ha.begin();
+#endif
 
 #endif // HAVE_WIFI
 } // end setup
@@ -101,12 +131,21 @@ void loop()
     return; // nothing else can happen when in calibration mode
   }
 
+#if HAVE_WIFI
+  wifiManager.maintain();
+#if USE_HOME_ASSISTANT
+  ha.maintain();
+#endif
+#endif // HAVE_WIFI
+
   if ((millis() - timepoint) >= SAMPLE_WINDOW_MILLIS)
   {
     timepoint = millis();
     sensors.read(&sensorsData);
 #if HAVE_WIFI
+#if USE_HOME_ASSISTANT
     ha.update(&sensorsData);
+#endif
 #else
     // populate json
 #if defined(HAVE_DHT22) || defined(HAVE_AHT20)
@@ -147,12 +186,15 @@ void loop()
     Serial.println();
     Serial.flush();
 #endif
+
+#ifdef HAVE_EC_DOSING
+    autoDoser.update(&sensorsData);
+#endif
   }
 
-#if HAVE_WIFI
-  wifiManager.maintain();
-  ha.maintain();
-#endif // HAVE_WIFI
+#ifdef HAVE_EC_DOSING
+  autoDoser.maintain();
+#endif
 
   // This delay should be short so that the networking stuff is maintained correctly.
   // Network maintenance includes checking for WiFi connection, server connection, and sending PINGs.

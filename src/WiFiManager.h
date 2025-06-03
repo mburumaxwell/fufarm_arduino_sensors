@@ -36,6 +36,13 @@ public:
    */
   void maintain();
 
+  /**
+   * Get the current time from RTC if available or the WiFi module.
+   *
+   * @param info Pointer to a tm structure to store the current time.
+   */
+  bool getCurrentTime(struct tm *info);
+
 private:
   uint8_t _status;
 

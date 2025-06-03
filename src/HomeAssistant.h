@@ -8,6 +8,10 @@
 #include <ArduinoHA.h>
 #include "sensors.h"
 
+#ifdef HAVE_EC_DOSING
+#include "AutoDoser.h"
+#endif
+
 /**
  * This class is a wrapper for the Home Assistant logic.
  * It is where all the Home Assistant related code is located.
@@ -82,11 +86,47 @@ public:
    */
   void update(FuFarmSensorsData *source, const bool force = true);
 
+#ifdef HAVE_EC_DOSING
+  /**
+   * Publishes MQTT messages for auto doser state.
+   * In some cases, if a value is the same as the previous one the MQTT message won't be published.
+   * It means that MQTT messages will produced each time the setValues method is called but they might not
+   * be the same from time to time.
+   *
+   * @param source Auto doser config.
+   * @param force Forces to update the state without comparing it to a previous known state.
+   */
+  void update(FuFarmAutoDoserState *source, const bool force = false);
+
+  /**
+   * Sets initial values of the auto dosing.
+   * This method should be called only once, when the auto dosing is initialized.
+   * It should be called before the begin() method.
+   *
+   * @param config Initial configuration of the auto dosing.
+   * @param state Initial state of the auto dosing.
+   */
+  void setInitialECAutoDosingValues(const FuFarmAutoDoserConfig *config, const FuFarmAutoDoserState *state);
+
+  /**
+   * Registers callback that will be called each time the EC auto dosing configuration is updated in the HA panel.
+   *
+   * @param callback
+   */
+  inline void onECAutoDosingConfigUpdated(void (*callback)(FuFarmAutoDoserConfig *config)) { ecAutoDosingConfigUpdatedCallback = callback; }
+#endif
+
   /**
    * Returns the current state of the MQTT connection.
    * @return true if connected, false otherwise.
    */
   inline bool connected() { return mqtt.isConnected(); }
+
+  /**
+   * Returns existing instance (singleton) of the FuFarmHomeAssistant class.
+   * It may be a null pointer if the FuFarmHomeAssistant object was never constructed or it was destroyed.
+   */
+  inline static FuFarmHomeAssistant *instance() { return _instance; }
 
 private:
   HADevice device;
@@ -116,6 +156,23 @@ private:
 #endif
 #ifdef HAVE_EC
   HASensorNumber ec;
+#ifdef HAVE_EC_DOSING
+  HASwitch ecAutoDosingEnabled;
+  HANumber ecAutoDosingDuration, ecAutoDosingTarget, ecAutoDosingEquilibriumTime;
+  HASensorNumber ecAutoDosingCount;
+  HASensor ecAutoDosingLastTime;
+  HASensorNumber ecAutoDosingTotalDuration;
+
+  void onECAutoDosingEnabledCommand(bool state, HASwitch *sender);
+  void onECAutoDosingDurationCommand(HANumeric number, HANumber *sender);
+  void onECAutoDosingTargetCommand(HANumeric number, HANumber *sender);
+  void onECAutoDosingEquilibriumTimeCommand(HANumeric number, HANumber *sender);
+
+  FuFarmAutoDoserConfig ecAutoDosingConfig;
+  FuFarmAutoDoserState ecAutoDosingState;
+  void (*ecAutoDosingConfigUpdatedCallback)(FuFarmAutoDoserConfig *config);
+  void updateECAutoDosingConfig();
+#endif
 #endif
 #ifdef HAVE_PH
   HASensorNumber ph;
@@ -123,6 +180,20 @@ private:
 #ifdef HAVE_MOISTURE
   HASensorNumber moisture;
 #endif
+
+  /// Living instance of the FuFarmSensors class. It can be nullptr.
+  static FuFarmHomeAssistant *_instance;
+
+private:
+  /**
+   * Formats the given time in ISO 8601 format (`YYYY-MM-DDTHH:MM:SSZ`) e.g. `2023-10-01T12:00:00Z`.
+   * The time is assumed to be UTC.
+   * @param buffer Buffer to store the formatted time.
+   * @param size Size of the buffer.
+   * @param info Pointer to the tm structure containing the time information.
+   * @note The buffer should be large enough (at least 21 bytes) to hold the formatted string.
+   */
+  void formatISO8601(char *buffer, size_t size, tm *info);
 };
 
 #endif // USE_HOME_ASSISTANT
