@@ -42,7 +42,9 @@ void WiFiManager::begin()
 
   WiFi.disconnect(); // Clear network stack https://forum.arduino.cc/t/mqtt-with-esp32-gives-timeout-exceeded-disconnecting/688723/5
 
+#if !WIFI_SKIP_LIST_NETWORKS
   listNetworks();
+#endif
   connect();
 }
 
@@ -119,6 +121,7 @@ const __FlashStringHelper *encryptionTypeToString(uint8_t type)
 }
 #endif
 
+#if !WIFI_SKIP_LIST_NETWORKS
 void WiFiManager::listNetworks()
 {
   Serial.println(F("** Scan Networks **"));
@@ -129,19 +132,37 @@ void WiFiManager::listNetworks()
     return; // nothing more to do here
   }
 
-  Serial.print(F("Number of available networks: "));
-  Serial.println(count);
-  for (int8_t i = 0; i < count; i++)
-  {
-    Serial.print(i);
-    Serial.print(F(") "));
-    Serial.print(WiFi.SSID(i));
-    Serial.print(F("\tSignal: "));
-    Serial.print(WiFi.RSSI(i));
-    Serial.print(F(" dBm"));
-    Serial.print(F("\tEncryption: "));
-    Serial.print(encryptionTypeToString(WiFi.encryptionType(i)));
-    Serial.println();
+  // 1) Print header
+  Serial.println();
+  Serial.println(F("Id  | SSID                             | Signal (dBm) | Ch | Encryption"));
+  Serial.println(F("----+----------------------------------+--------------+----+------------"));
+
+  // 2) For each network, build a fixed-width line
+  for (int8_t i = 0; i < count; i++) {
+    // Build into a buffer with fixed column widths:
+    //   • Index:      width  3, right-aligned
+    //   • SSID:       width 32, left-aligned (crop or pad with spaces if shorter)
+    //   • Signal:     width  5, right-aligned (the "(dBm)" is in header)
+    //   • Channel:    width  2, right-aligned
+    //   • Encryption: width 10, left-aligned
+    // 3 + 32 + 5 + spaces + 2 + 10 + (4 * 3 separators) + 1 EOF byte ≈ 64 – 72 bytes total
+    char lineBuf[80];
+    snprintf(
+      lineBuf, sizeof(lineBuf),
+      "%3d | %-32.32s | %5d        | %2d | %-10.10s",
+      i,
+#ifdef ARDUINO_ARCH_ESP32
+      WiFi.SSID(i).c_str(), // Use c_str() to get a const char* from String
+#else
+      WiFi.SSID(i),
+#endif
+      WiFi.RSSI(i),
+      WiFi.channel(i),
+      // Use reinterpret_cast to convert from __FlashStringHelper* to const char*
+      reinterpret_cast<const char*>(
+        encryptionTypeToString(WiFi.encryptionType(i)))
+    );
+    Serial.println(lineBuf);
   }
   Serial.println();
 
@@ -150,6 +171,7 @@ void WiFiManager::listNetworks()
   WiFi.scanDelete();
 #endif
 }
+#endif
 
 void WiFiManager::connect()
 {
