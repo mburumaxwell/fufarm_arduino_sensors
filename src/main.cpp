@@ -106,7 +106,7 @@ void loop()
     timepoint = millis();
     sensors.read(&sensorsData);
 #if HAVE_WIFI
-    ha.setValues(&sensorsData);
+    ha.update(&sensorsData);
 #else
     // populate json
 #if defined(HAVE_DHT22) || defined(HAVE_AHT20)

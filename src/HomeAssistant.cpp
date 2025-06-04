@@ -141,6 +141,7 @@ FuFarmHomeAssistant::FuFarmHomeAssistant(Client &client) :
 
 FuFarmHomeAssistant::~FuFarmHomeAssistant()
 {
+  mqtt.disconnect();
 }
 
 void FuFarmHomeAssistant::setUniqueDeviceId(const uint8_t *value, uint8_t length)
@@ -166,8 +167,14 @@ void FuFarmHomeAssistant::maintain()
   mqtt.loop();
 }
 
-void FuFarmHomeAssistant::setValues(FuFarmSensorsData *source, const bool force)
+void FuFarmHomeAssistant::update(FuFarmSensorsData *source, const bool force)
 {
+  if (!connected())
+  {
+    Serial.println(F("MQTT not connected, skipping update"));
+    return;
+  }
+
 #ifdef HAVE_WATER_LEVEL_STATE
   waterLevel.setState(source->waterLevelState, force);
 #endif
