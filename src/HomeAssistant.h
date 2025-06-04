@@ -73,14 +73,20 @@ public:
 
   /**
    * Publishes MQTT messages for configured sensors.
+   * If the connection has not been established, nothing is published.
    * In some cases, if a sensor value is the same as the previous one the MQTT message won't be published.
-   * It means that MQTT messages will produced each time the setValues method is called but they might not
-   * be the same from time to time.
+   * This means MQTT messages are not always produced when the update method is called.
    *
    * @param source All values for configured sensors.
    * @param force Forces to update the state without comparing it to a previous known state.
    */
-  void setValues(FuFarmSensorsData *source, const bool force = true);
+  void update(FuFarmSensorsData *source, const bool force = true);
+
+  /**
+   * Returns the current state of the MQTT connection.
+   * @return true if connected, false otherwise.
+   */
+  inline bool connected() { return mqtt.isConnected(); }
 
 private:
   HADevice device;
