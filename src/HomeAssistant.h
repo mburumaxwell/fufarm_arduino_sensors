@@ -6,6 +6,7 @@
 #if USE_HOME_ASSISTANT
 
 #include <ArduinoHA.h>
+#include "ServiceDiscovery.h"
 #include "sensors.h"
 
 /**
@@ -48,22 +49,11 @@ public:
    * Connection to the broker will be done in the first loop cycle.
    * This class automatically reconnects to the broker if connection is lost.
    *
-   * Connection parameters (host, port, username, password, etc) are pulled from the build flags.
-   */
-  void begin();
-
-  /**
-   * Sets parameters of the MQTT connection using the IP address and port.
-   * Also sets device_class, units, expiry, and other properties of each sensor.
-   * Connection to the broker will be done in the first loop cycle.
-   * This class automatically reconnects to the broker if connection is lost.
+   * Authentication parameters (username, password) are pulled from the build flags.
    *
-   * @param host Domain or IP address of the MQTT broker.
-   * @param port Port of the MQTT broker.
-   * @param username Username for authentication. It can be nullptr if the anonymous connection needs to be performed.
-   * @param password Password for authentication. It can be nullptr if the anonymous connection needs to be performed.
+   * @param endpoint Endpoint of the MQTT broker containing Domain or IP address and Port.
    */
-  void begin(const char *host, const uint16_t port = 1883, const char *username = nullptr, const char *password = nullptr);
+  void connect(const NetworkEndpoint *endpoint);
 
   /**
    * This method should be called periodically inside the main loop of the firmware.

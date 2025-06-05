@@ -45,15 +45,14 @@ void WiFiManager::begin()
 #if !WIFI_SKIP_LIST_NETWORKS
   listNetworks();
 #endif
-  connect();
+  connect(true);
 }
 
 void WiFiManager::maintain()
 {
-  connect();
+  connect(false);
 }
 
-#ifndef ARDUINO_ARCH_ESP32
 void WiFiManager::printMacAddress(uint8_t mac[])
 {
   for (int i = 5; i >= 0; i--)
@@ -69,7 +68,6 @@ void WiFiManager::printMacAddress(uint8_t mac[])
     }
   }
 }
-#endif
 
 #ifdef ARDUINO_ARCH_ESP32
 const __FlashStringHelper *encryptionTypeToString(wifi_auth_mode_t mode)
@@ -173,7 +171,7 @@ void WiFiManager::listNetworks()
 }
 #endif
 
-void WiFiManager::connect()
+void WiFiManager::connect(bool initial)
 {
   // if already connected, there is nothing more to do
   uint8_t status = WiFi.status();
@@ -238,16 +236,11 @@ void WiFiManager::connect()
   Serial.print(F("SSID: "));
   Serial.println(WiFi.SSID());
 
-#ifdef ARDUINO_ARCH_ESP32
-  Serial.print(F("BSSID: "));
-  Serial.println(WiFi.BSSIDstr());
-#else
-  uint8_t mac[WL_MAC_ADDR_LENGTH];
+  uint8_t mac[MAC_ADDRESS_LENGTH];
   WiFi.BSSID(mac);
   Serial.print(F("BSSID: "));
   printMacAddress(mac);
   Serial.println();
-#endif
 
   Serial.print(F("Signal strength (RSSI): "));
   Serial.print(WiFi.RSSI());
@@ -256,15 +249,21 @@ void WiFiManager::connect()
   Serial.print(F("IP Address: "));
   Serial.println(WiFi.localIP());
 
-#ifdef ARDUINO_ARCH_ESP32
+  WiFi.macAddress(_macAddress);
   Serial.print(F("MAC address: "));
-  Serial.println(WiFi.macAddress());
-#else
-  WiFi.macAddress(mac);
-  Serial.print(F("MAC address: "));
-  printMacAddress(mac);
+  printMacAddress(_macAddress);
   Serial.println();
-#endif
+
+  // For the first time, set the hostname using the mac address.
+  // Change the hostname to a more useful name. E.g. a default value like "esp32s3-594E40" changes to "fufarm-594E40"
+  // The WiFi stack needs to have been activated by scanning or connecting hence why this is done last. Otherwise just zeros.
+  if (initial)
+  {
+    snprintf(_hostname, sizeof(_hostname), "fufarm-%02X%02X%02X", _macAddress[3], _macAddress[4], _macAddress[5]);
+    WiFi.setHostname(_hostname);
+    Serial.print("Set hostname to ");
+    Serial.println(_hostname);
+  }
 }
 
 #endif // HAVE_WIFI

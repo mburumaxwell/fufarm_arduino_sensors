@@ -22,7 +22,7 @@ Sometimes, you may not have direct access to a Home Assistant setup and you want
 
    `mosquitto -v -c mosquitto.conf`
 
-### Ngrok to resolve connection issues
+### Ngrok to troubleshoot internet connection issues
 
 <details>
 <summary><strong>Details</strong></summary>
