@@ -36,17 +36,32 @@ public:
    */
   void maintain();
 
-private:
-  uint8_t _status;
+  /**
+   * Get the station interface IP address.
+   */
+  inline IPAddress localIP() { return WiFi.localIP(); }
+
+  /**
+   * Get the station interface IP address.
+   */
+  inline uint8_t * macAddress() { return _macAddress; }
+
+  /**
+   * Get the station interface IP address.
+   */
+  inline const char* hostname() { return _hostname; }
 
 private:
-#ifndef ARDUINO_ARCH_ESP32
-  void printMacAddress(uint8_t mac[]);
-#endif
+  uint8_t _status;
+  char _hostname[20]; // e.g. "fufarm-012345678901" plus EOF
+  uint8_t _macAddress[MAC_ADDRESS_LENGTH];
+
+private:
+void printMacAddress(uint8_t mac[]);
 #if !WIFI_SKIP_LIST_NETWORKS
   void listNetworks();
 #endif
-  void connect();
+  void connect(bool initial);
 };
 
 #endif // HAVE_WIFI

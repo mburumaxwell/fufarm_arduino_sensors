@@ -2,8 +2,12 @@
 #include "sensors.h"
 
 #if HAVE_WIFI
-#include "HomeAssistant.h"
 #include "WiFiManager.h"
+#endif
+
+#if HAVE_NETWORK
+#include "ServiceDiscovery.h"
+#include "HomeAssistant.h"
 #else
 #include <ArduinoJson.h>
 #endif
@@ -18,17 +22,25 @@ WiFiManager wifiManager;
 #if HOME_ASSISTANT_MQTT_TLS
 #ifdef ARDUINO_ARCH_ESP32
 #include <WiFiClientSecure.h>
-WiFiClientSecure wifiClient;
+WiFiClientSecure tcpClient;
 #else
-WiFiSSLClient wifiClient;
+WiFiSSLClient tcpClient;
 #endif
 #else
-WiFiClient wifiClient;
+WiFiClient tcpClient;
 #endif
-FuFarmHomeAssistant ha(wifiClient);
+WiFiUDP udpClient;
+#endif
+
+// Network
+#if HAVE_NETWORK
+#if NETWORK_SERVICE_DISCOVERY
+ServiceDiscovery discovery(udpClient);
+#endif
+FuFarmHomeAssistant ha(tcpClient);
 #else
 JsonDocument doc;
-#endif
+#endif // HAVE_NETWORK
 
 void setup()
 {
@@ -78,17 +90,27 @@ void setup()
 #if HAVE_WIFI
   wifiManager.begin();
 #if HOME_ASSISTANT_MQTT_TLS && defined(ARDUINO_ARCH_ESP32)
-  wifiClient.setCACert(root_ca_certs);
+  tcpClient.setCACert(root_ca_certs);
 #endif
+#endif // HAVE_WIFI
 
-  uint8_t mac[6];
-  WiFi.macAddress(mac);
-  ha.setUniqueDeviceId(mac, sizeof(mac));
+#if HAVE_NETWORK
+  ha.setUniqueDeviceId(wifiManager.macAddress(), MAC_ADDRESS_LENGTH);
   Serial.print(F("Home Assistant Unique Device ID: "));
   Serial.println(ha.getUniqueId());
-  ha.begin();
-
-#endif // HAVE_WIFI
+#if NETWORK_SERVICE_DISCOVERY
+  discovery.begin(wifiManager.localIP(), wifiManager.hostname(), wifiManager.macAddress());
+  discovery.onHaEndpointUpdated([](NetworkEndpoint *endpoint) { ha.connect(endpoint); });
+#else
+  NetworkEndpoint haEndpoint = {
+    .type = NetworkEndpointType::DNS,
+    .ip = INADDR_NONE,
+    .hostname = HOME_ASSISTANT_MQTT_HOST,
+    .port = HOME_ASSISTANT_MQTT_PORT,
+  };
+  ha.connect(&haEndpoint);
+#endif
+#endif // HAVE_NETWORK
 } // end setup
 
 static unsigned long timepoint = millis();
@@ -105,7 +127,7 @@ void loop()
   {
     timepoint = millis();
     sensors.read(&sensorsData);
-#if HAVE_WIFI
+#if HAVE_NETWORK
     ha.update(&sensorsData);
 #else
     // populate json
@@ -151,8 +173,13 @@ void loop()
 
 #if HAVE_WIFI
   wifiManager.maintain();
-  ha.maintain();
 #endif // HAVE_WIFI
+#if HAVE_NETWORK
+#if NETWORK_SERVICE_DISCOVERY
+  discovery.maintain();
+#endif
+  ha.maintain();
+#endif // HAVE_NETWORK
 
   // This delay should be short so that the networking stuff is maintained correctly.
   // Network maintenance includes checking for WiFi connection, server connection, and sending PINGs.

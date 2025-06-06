@@ -149,17 +149,26 @@ void FuFarmHomeAssistant::setUniqueDeviceId(const uint8_t *value, uint8_t length
   device.setUniqueId(value, length);
 }
 
-void FuFarmHomeAssistant::begin()
+void FuFarmHomeAssistant::connect(const NetworkEndpoint *endpoint)
 {
-  begin(HOME_ASSISTANT_MQTT_HOST,
-        HOME_ASSISTANT_MQTT_PORT,
-        HOME_ASSISTANT_MQTT_USERNAME,
-        HOME_ASSISTANT_MQTT_PASSWORD);
-}
+  // if already connected, disconnect (assumes this method is only called when the endpoint is acquired or has changed)
+  if (connected()) {
+    mqtt.disconnect();
+  }
 
-void FuFarmHomeAssistant::begin(const char *host, const uint16_t port, const char *username, const char *password)
-{
-  mqtt.begin(host, port, username, password);
+  const char *username = HOME_ASSISTANT_MQTT_USERNAME;
+  const char *password = HOME_ASSISTANT_MQTT_PASSWORD;
+
+  if (endpoint->type == NetworkEndpointType::DNS) {
+    mqtt.begin(endpoint->hostname, endpoint->port, username, password);
+  }
+  else if (endpoint->type == NetworkEndpointType::IP) {
+    mqtt.begin(endpoint->ip, endpoint->port, username, password);
+  }
+  else {
+    Serial.print("Unknown or unhandled network endpoint type: ");
+    Serial.println(endpoint->type);
+  }
 }
 
 void FuFarmHomeAssistant::maintain()

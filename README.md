@@ -155,3 +155,19 @@ There are several steps to get this working:
 ```bash
 mqtt: !include mqtt.yml
 ```
+
+## Service Discovery
+
+By default, the IP for the home assistant installation is discovered using mDNS/Bonjour but you can fix by setting the value next to `build_flags_ha_host` in [platformio.ini](./platformio.ini). Using discovery is the recommended approach to avoid hard coded values and to update should the IP change. Discovery happens at boot and every 5 min.
+
+To aid with trouble shooting, the device broadcasts a TCP service for port 7005 but the port cannot actually be opened. To check discovery from your computer or the PI using the following commands.
+
+|OS|Task|Command|
+|--|--|--|
+|macOS|List all services|`dns-sd -B _services._dns-sd._tcp local`|
+|macOS|List just fufarm ones|`dns-sd -B _fufarm`|
+|macOS|List just home-assistant ones|`dns-sd -B _home-assistant`|
+|macOS|Get details for one|`dns-sd -L "Farm Urban <mac>`|
+|Linux|List all services|`avahi-browse -at`|
+|Linux|List just fufarm ones with details|`avahi-browse -rt _fufarm._tcp`|
+|Linux|List just home-assistant ones with details|`avahi-browse -rt _home-assistant._tcp`|

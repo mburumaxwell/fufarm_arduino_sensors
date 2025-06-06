@@ -121,8 +121,26 @@
   #endif
 #endif
 
+// General Network
+#if HAVE_WIFI // || HAVE_ETHERNET || HAVE_CELLULAR
+  #define HAVE_NETWORK 1
+#else
+  #define HAVE_NETWORK 0
+#endif
+
+#if HAVE_NETWORK
+  #define MAC_ADDRESS_LENGTH 6
+#endif
+
+// Network Service Discovery (mDNS/Bonjour)
+#if HAVE_NETWORK && !defined(HOME_ASSISTANT_MQTT_HOST)
+  #define NETWORK_SERVICE_DISCOVERY 1
+#else
+  #define NETWORK_SERVICE_DISCOVERY 0
+#endif
+
 // Home Assistant
-#if HAVE_WIFI
+#if HAVE_NETWORK
   #define USE_HOME_ASSISTANT 1
 #else
   #define USE_HOME_ASSISTANT 0
