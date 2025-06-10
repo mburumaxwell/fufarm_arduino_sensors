@@ -161,8 +161,8 @@
   // PUBACK is only sent in response to PUBLISH when QoS=1. With the library in use, it is similar to fire-and-forget.
   // If the keep alive value is larger than the sample duration (SAMPLE_WINDOW_MILLIS), we never end up sending the PING packets.
   // Consequently, we never get to detect server disconnection.
-  // If we have a lower value here, PING packets are sent every now and them meaning we can detect disconnects sooner.
-  // It would be a good idea to calculate the value by halfing the sample duration (SAMPLE_WINDOW_MILLIS) but it may result is too much noise.
+  // If we have a lower value here, PING packets are sent every now and then meaning we can detect disconnects sooner.
+  // It would be a good idea to calculate the value by halfing the sample duration (SAMPLE_WINDOW_MILLIS) but it may result in too much noise.
   #define HOME_ASSISTANT_MQTT_KEEPALIVE 30
 #endif
 
