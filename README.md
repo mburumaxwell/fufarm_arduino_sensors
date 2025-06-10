@@ -1,28 +1,65 @@
 # Farm Urban (Arduino Sensors)
 
-Code for Arduino Sensors
+A comprehensive sensor management system for Arduino-based environmental monitoring, designed for urban farming applications. This system supports multiple sensor types and integrates with Home Assistant for data visualization and automation.
 
-This code is built for the following boards:
+## Table of Contents
 
-- [Arduino Leonardo](https://store.arduino.cc/products/arduino-leonardo-with-headers)
-- [Arduino UNO R4 WiFi](https://store.arduino.cc/products/uno-r4-wifi)
-- [Arduino UNO WiFi R2](https://store.arduino.cc/products/arduino-uno-wifi-rev2)
-- [ESP32 S3 DevKitC 1 N16R8](https://www.amazon.co.uk/ESP32-DevKitC-WROOM1-Development-Bluetooth/dp/B0CLD4QKT1)
+- [Supported Boards](#supported-boards)
+- [Quick Start](#quick-start)
+- [WiFi Configuration](#wifi-configuration)
+- [Sensor Configuration](#sensor-configuration)
+- [Calibration](#calibration)
+- [Data Transmission](#data-transmission)
+- [Setup with Arduino Shield for Raspberry Pi and Home Assistant](#setup-with-arduino-shield-for-raspberry-pi-and-home-assistant)
+- [Service Discovery](#service-discovery)
+- [Troubleshooting](#troubleshooting)
 
-Other boards might be added with time, if need be. However, should you need to test on another board, [supported by PlatformIO](https://docs.platformio.org/en/latest/boards/index.html), the easiest way would be to add a new environment in the [platformio.ini](./platformio.ini) file. The current code base is built to work with Arduino which means choosing boards [supported by the Arduino platform](https://docs.platformio.org/en/latest/frameworks/arduino.html#boards) is easier.
+## Supported Boards
 
-You can comment/uncomment, one of the lines under `platformio` in the configuration file to target just one which is easier/faster for local use. Otherwise the commands you need are
+The system is tested and supported on the following boards:
 
-| Name/Action             | Command Format                                        | Example                                               |
+- [Arduino Leonardo](https://store.arduino.cc/products/arduino-leonardo-with-headers) - Basic sensor support
+- [Arduino UNO R4 WiFi](https://store.arduino.cc/products/uno-r4-wifi) - WiFi-enabled, direct Home Assistant integration
+- [Arduino UNO WiFi R2](https://store.arduino.cc/products/arduino-uno-wifi-rev2) - WiFi-enabled, direct Home Assistant integration
+- [ESP32 S3 DevKitC 1 N16R8](https://www.amazon.co.uk/ESP32-DevKitC-WROOM1-Development-Bluetooth/dp/B0CLD4QKT1) - Advanced features, WiFi-enabled
+
+> [!NOTE]
+> While other boards supported by PlatformIO can be added, Arduino-compatible boards are recommended for easier integration.
+
+## Quick Start
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/farm-urban/fufarm_arduino_sensors.git
+   cd fufarm_arduino_sensors
+   ```
+
+2. Configure your sensors in `platformio.ini`
+
+3. Build and upload:
+
+   ```bash
+   # For all supported boards
+   pio run
+
+   # For a specific board
+   pio run --environment uno_wifi_rev2
+   pio run --environment uno_wifi_rev2 --target upload
+   ```
+
+Common commands:
+
+| Action                  | Command Format                                        | Example                                               |
 | ----------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
 | Build (default boards)  |                                                       | `pio run`                                             |
 | Build (specific board)  | `pio run --environment {env-name}`                    | `pio run --environment uno_wifi_rev2`                 |
 | Upload (specific board) | `pio run --environment {env-name} --target upload`    | `pio run --environment uno_wifi_rev2 --target upload` |
-| Test                    |                                                       | `pio test --environment native`                       |
+<!-- | Test                    |                                                       | `pio test --environment native`                       | -->
 | Clean (default boards)n |                                                       | `pio run --target fullclean`                          |
 | Clean (specific board)  | `pio run --environment {env-name} --target fullclean` | `pio run --environment leonardo --target fullclean`   |
 
-## WiFi
+## WiFi Configuration
 
 Boards that support WiFi are generally easier to work with because they transmit directly to Home Assistant. The WiFi network you connect to is controlled by the common `build_flags_wifi` in `platformio.ini`.
 
@@ -43,7 +80,7 @@ The WiFi modules may need firmware updates to work properly such as when using a
 - [Arduino UNO R4 WiFi](https://support.arduino.cc/hc/en-us/articles/9670986058780-Update-the-connectivity-module-firmware-on-UNO-R4-WiFi)
 - [Arduino UNO WiFi Rev2](https://github.com/xcape-io/ArduinoProps/blob/master/help/WifiNinaFirmware.md)
 
-## Sensors
+## Sensor Configuration
 
 There are a number of sensors used in the farm for different purposes.
 
@@ -70,7 +107,7 @@ When you start using this, you might not have/need all of these. You can remove 
 > The EC and pH probes require temperature compensation. The best value to use for this is the wet temperature. However, if the wet temperature sensor is not configured, the air temperature is used which may not be as accurate. A build time warning is produced.
 > The air temperature may also used if the wet temperature reading is between -1000 and -1002, limits inclusive which is usually transient.
 
-### Calibration
+## Calibration
 
 The EC and pH sensor need calibration for the first time use or after not being used for an extended period of time. There are detailed guides for calibration at:
 
@@ -162,12 +199,45 @@ By default, the IP for the home assistant installation is discovered using mDNS/
 
 To aid with trouble shooting, the device broadcasts a TCP service for port 7005 but the port cannot actually be opened. To check discovery from your computer or the PI using the following commands.
 
-|OS|Task|Command|
-|--|--|--|
-|macOS|List all services|`dns-sd -B _services._dns-sd._tcp local`|
-|macOS|List just fufarm ones|`dns-sd -B _fufarm`|
-|macOS|List just home-assistant ones|`dns-sd -B _home-assistant`|
-|macOS|Get details for one|`dns-sd -L "Farm Urban <mac>`|
-|Linux|List all services|`avahi-browse -at`|
-|Linux|List just fufarm ones with details|`avahi-browse -rt _fufarm._tcp`|
-|Linux|List just home-assistant ones with details|`avahi-browse -rt _home-assistant._tcp`|
+| OS     | Task                                      | Command                                  |
+| -----  | ----------------------------------------- | ---------------------------------------- |
+| macOS  | List all services                         | `dns-sd -B _services._dns-sd._tcp local` |
+| macOS  | List just fufarm ones                     | `dns-sd -B _fufarm`                      |
+| macOS  | List just home-assistant ones             | `dns-sd -B _home-assistant`              |
+| macOS  | Get details for one                       | `dns-sd -L "Farm Urban <mac>`            |
+| Linux  | List all services                         | `avahi-browse -at`                       |
+| Linux  | List just fufarm ones with details        | `avahi-browse -rt _fufarm._tcp`          |
+| Linux  | List just home-assistant ones with details| `avahi-browse -rt _home-assistant._tcp`  |
+
+## Troubleshooting
+
+### Common Issues
+
+1. **WiFi Connection**
+   - Verify network credentials
+   - Check for special characters in SSID
+   - Ensure firmware is up to date
+
+2. **Sensor Readings**
+   - Verify pin connections
+   - Check calibration status
+   - Review serial monitor for error messages
+
+3. **Home Assistant Integration**
+   - Verify MQTT broker settings
+   - Check service discovery
+   - Review Home Assistant logs
+
+### Getting Help
+
+- Check the [GitHub Issues](https://github.com/farm-urban/fufarm_arduino_sensors/issues)
+<!-- - Review the [Wiki](https://github.com/farm-urban/fufarm_arduino_sensors/wiki) -->
+<!-- - Join our [Discussions](https://github.com/farm-urban/fufarm_arduino_sensors/discussions) -->
+
+## Contributing
+
+We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
