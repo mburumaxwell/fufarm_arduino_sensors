@@ -37,6 +37,8 @@ public:
   /**
    * Creates a new instance of the ServiceDiscovery class.
    * Please note that only one instance of the class can be initialized at the same time.
+   *
+   * @param udpClient The UDP client to use for the service discovery.
    */
   ServiceDiscovery(UDP& udpClient);
 
@@ -69,7 +71,7 @@ public:
   /**
    * Registers callback that will be called each time the ha endpoint is updated.
    *
-   * @param callback
+   * @param callback The callback to register.
    */
   inline void onHaEndpointUpdated(void (*callback)(NetworkEndpoint *endpoint)) { haEndpointUpdatedCallback = callback; }
 #endif
@@ -95,7 +97,7 @@ private:
 
 private:
   void (*haEndpointUpdatedCallback)(NetworkEndpoint *endpoint);
-  unsigned long discoverTimepoint;
+  uint32_t discoverTimepoint;
 
   /// Living instance of the ServiceDiscovery class. It can be nullptr.
   static ServiceDiscovery *_instance;

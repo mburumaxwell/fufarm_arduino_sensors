@@ -216,7 +216,7 @@ void WiFiManager::connect(bool initial)
   status = WiFi.begin(WIFI_SSID);
 #endif
 
-  unsigned long started = millis();
+  uint32_t started = millis();
   while (status != WL_CONNECTED)
   {
     // Timeout reached – perform a reset

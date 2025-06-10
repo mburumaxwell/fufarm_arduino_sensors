@@ -71,10 +71,6 @@ void FuFarmSensors::initialiseAHT20()
 
 void FuFarmSensors::begin()
 {
-#if defined(HAVE_AHT20) || defined(HAVE_ENS160)
-  uint8_t status = -1, count = 0;
-#endif
-
 #ifdef HAVE_WATER_LEVEL_STATE
   pinMode(SENSORS_SEN0204_PIN, INPUT);
 #endif
@@ -86,7 +82,7 @@ void FuFarmSensors::begin()
 #endif
 
 #ifdef HAVE_ENS160
-  count = 0;
+  uint8_t status = -1, count = 0;
   while ((status = ens160.begin()) != NO_ERR)
   {
     Serial.print(F("ENS160 sensor initialisation failed. Error status: "));
@@ -120,14 +116,14 @@ void FuFarmSensors::begin()
 #endif
 }
 
-void FuFarmSensors::calibration(unsigned long readIntervalMs)
+void FuFarmSensors::calibration(uint32_t readIntervalMs)
 {
   // References:
   // - https://wiki.dfrobot.com/Gravity__Analog_pH_Sensor_Meter_Kit_V2_SKU_SEN0161-V2
   // - https://wiki.dfrobot.com/Gravity__Analog_Electrical_Conductivity_Sensor___Meter_V2__K%3D1__SKU_DFR0300
 
   static float temperature = 25; // assumed room temperature (used when there is no wet temp sensor)
-  static unsigned long timepoint = millis();
+  static uint32_t timepoint = millis();
 #ifdef HAVE_EC
   static float voltageEC, ecValue;
 #endif

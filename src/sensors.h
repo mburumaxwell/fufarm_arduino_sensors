@@ -105,11 +105,15 @@ public:
    * Performs calibration of the sensors.
    * Sensors that require calibration are EC, pH.
    * This should be called in a loop, ideally in a config mode.
+   *
+   * @param readIntervalMs The interval in milliseconds between readings.
    */
-  void calibration(unsigned long readIntervalMs = 1000U);
+  void calibration(uint32_t readIntervalMs = 1000U);
 
   /**
    * Reads all sensor data and stores it in the provided FuFarmSensorsData structure.
+   *
+   * @param dest The destination structure to store the sensor data.
    */
   void read(FuFarmSensorsData *dest);
 

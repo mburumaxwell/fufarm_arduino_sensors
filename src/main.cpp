@@ -113,7 +113,7 @@ void setup()
 #endif // HAVE_NETWORK
 } // end setup
 
-static unsigned long timepoint = millis();
+static uint32_t timepoint = millis();
 
 void loop()
 {
