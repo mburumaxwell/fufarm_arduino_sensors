@@ -22,9 +22,43 @@ The system is tested and supported on the following boards:
 - [Arduino UNO R4 WiFi](https://store.arduino.cc/products/uno-r4-wifi) - WiFi-enabled, direct Home Assistant integration
 - [Arduino UNO WiFi R2](https://store.arduino.cc/products/arduino-uno-wifi-rev2) - WiFi-enabled, direct Home Assistant integration
 - [ESP32 S3 DevKitC 1 N16R8](https://www.amazon.co.uk/ESP32-DevKitC-WROOM1-Development-Bluetooth/dp/B0CLD4QKT1) - Advanced features, WiFi-enabled
+- [DFROBOT FireBeetle](https://wiki.dfrobot.com/FireBeetle_Board_ESP32_E_SKU_DFR0654) - Requires CH34x USB driver (see below)
 
 > [!NOTE]
 > While other boards supported by PlatformIO can be added, Arduino-compatible boards are recommended for easier integration.
+
+## USB Driver Installation (DFROBOT FireBeetle)
+
+If you are using the DFROBOT FireBeetle board, you may need to install the CH34x USB-to-Serial driver to allow your computer to communicate with the board over USB.
+
+### macOS
+
+1. Download the latest CH34x driver from the official WCH website:  
+   [https://www.wch.cn/downloads/CH34XSER_MAC_ZIP.html](https://www.wch.cn/downloads/CH34XSER_MAC_ZIP.html)
+2. Unzip the downloaded file.
+3. Open the `.pkg` installer and follow the on-screen instructions.
+4. After installation, you may need to allow the driver in **System Preferences > Security & Privacy**.
+5. Reboot your Mac if prompted.
+
+### Linux
+
+Most modern Linux distributions include the CH34x driver by default. If not, you can install it manually:
+
+```bash
+sudo apt-get install dkms
+# The ch341 driver is usually included in the kernel as 'ch341.ko'
+# To load it manually:
+sudo modprobe ch341
+```
+
+### Windows
+
+1. Download the latest CH34x driver from the official WCH website:  
+   [https://www.wch.cn/downloads/CH341SER_EXE.html](https://www.wch.cn/downloads/CH341SER_EXE.html)
+2. Run the installer and follow the instructions.
+
+> [!IMPORTANT]
+> Always download drivers from the official WCH website or trusted sources.
 
 ## Quick Start
 
