@@ -172,10 +172,10 @@ extern const char root_ca_certs[];
 
 #if HOME_ASSISTANT_MQTT_TLS && !HOME_ASSISTANT_MQTT_TLS_SUPPRESS_WARNING
   #if defined(ARDUINO_UNOR4_WIFI)
-    #pragma "⚠️ Arduino Uno R4 WiFi may not work with self signed certificates for TLS."
+    #pragma message "⚠️ Arduino Uno R4 WiFi may not work with self signed certificates for TLS."
   #endif
   #if defined(ARDUINO_AVR_UNO_WIFI_REV2)
-    #pragma "⚠️ Arduino Uno WiFi Rev2 may not work with self signed certificates for TLS."
+    #pragma message "⚠️ Arduino Uno WiFi Rev2 may not work with self signed certificates for TLS."
   #endif
 #endif
 
