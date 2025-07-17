@@ -2,7 +2,7 @@
 
 ## Testing MQTT without a Home Assistant setup
 
-Sometimes, you may not have direct access to a Home Assistant setup and you want to test the MQTT communication, you can setup a local broker using [mosquitto](https://mosquitto.org/documentation/) and the test the status of the broker with [MQTT Explorer](https://mqtt-explorer.com/).
+Sometimes, you may not have direct access to a Home Assistant setup and you want to test the MQTT communication, you can setup a local broker using [mosquitto](https://mosquitto.org/documentation/) and then test the status of the broker with [MQTT Explorer](https://mqtt-explorer.com/).
 
 ### Docker
 
