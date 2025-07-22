@@ -1,22 +1,19 @@
 #!/bin/bash
 export PATH=/opt/platformio/bin:$PATH
 
-usage="Usage $0 leonardo|uno_r4_wifi|uno_wifi_rev2";
+usage="Usage $0 esp32e_firebeetle2|esp32s3_devkitc";
 
 if [ $# -ne 1 ]; then
     echo $usage
     exit 1;
 fi
 
-if [ $1 = "leonardo" ]
+if [ $1 = "esp32e_firebeetle2" ]
 then
-    board=leonardo
-elif [ $1 = "uno_r4_wifi" ]
+    board=esp32e_firebeetle2
+elif [ $1 = "esp32s3_devkitc" ]
 then
-    board=uno_r4_wifi
-elif [ $1 = "uno_wifi_rev2" ]
-then
-    board=uno_wifi_rev2
+    board=esp32s3_devkitc
 else
     echo $usage
     exit 1;

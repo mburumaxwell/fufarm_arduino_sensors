@@ -33,31 +33,6 @@
 
 #ifdef SENSORS_SEN0217_PIN
   #define HAVE_FLOW
-
-  // For this flow sensor, only interrupt pins should be used. Configured on a rising edge
-  // https://reference.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/
-
-  #if defined(ARDUINO_ARCH_ESP32) // all pins
-  #elif defined(ARDUINO_AVR_LEONARDO) // only 0, 1, 2, 3, 7
-    #if SENSORS_SEN0217_PIN == 0
-    #elif SENSORS_SEN0217_PIN == 1
-    #elif SENSORS_SEN0217_PIN == 2
-    #elif SENSORS_SEN0217_PIN == 3
-    #elif SENSORS_SEN0217_PIN == 7
-    #else
-      #error "Pin configured for SEN0217 (flow sensor) must support interrupts on LEONARDO."
-    #endif
-  #elif defined(ARDUINO_UNOR4_WIFI) // all digital pins
-    #if SENSORS_SEN0217_PIN < 0 || SENSORS_SEN0217_PIN > 13
-      #error "Pin configured for SEN0217 (flow sensor) must support interrupts on UNO WIFI REV2."
-    #endif
-  #elif defined(ARDUINO_AVR_UNO_WIFI_REV2) // only 2 or 3
-    #if SENSORS_SEN0217_PIN != 2 && SENSORS_SEN0217_PIN != 3
-      #error "Pin configured for SEN0217 (flow sensor) must support interrupts on UNO R4 WIFI."
-    #endif
-  #else // any other board we have not validated
-    #pragma message "⚠️ Unable to validate if pin configured for SEN0217 (flow sensor) allows interrupts required."
-  #endif
 #endif
 
 #ifdef SENSORS_SEN0204_PIN
@@ -96,11 +71,8 @@
 
 // WiFi
 #ifndef HAVE_WIFI
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_AVR_UNO_WIFI_REV2)
   #define HAVE_WIFI 1
-#else
-  #define HAVE_WIFI 0
-#endif
+  // #define HAVE_WIFI 0
 #endif
 
 #if (defined(WIFI_ENTERPRISE_USERNAME) && !defined(WIFI_ENTERPRISE_PASSWORD)) || \
@@ -112,12 +84,6 @@
   #endif
   #ifndef WIFI_ENTERPRISE_CA
     #define WIFI_ENTERPRISE_CA "" // default in the library
-  #endif
-#endif
-
-#if defined(ARDUINO_UNOR4_WIFI)
-  #if defined(WIFI_ENTERPRISE_USERNAME) || defined(WIFI_ENTERPRISE_PASSWORD)
-    #error "Arduino Uno R4 WiFi does not yet support enterprise WiFi."
   #endif
 #endif
 
@@ -168,15 +134,6 @@
 
 #if HOME_ASSISTANT_MQTT_TLS
 extern const char root_ca_certs[];
-#endif
-
-#if HOME_ASSISTANT_MQTT_TLS && !HOME_ASSISTANT_MQTT_TLS_SUPPRESS_WARNING
-  #if defined(ARDUINO_UNOR4_WIFI)
-    #pragma message "⚠️ Arduino Uno R4 WiFi may not work with self signed certificates for TLS."
-  #endif
-  #if defined(ARDUINO_AVR_UNO_WIFI_REV2)
-    #pragma message "⚠️ Arduino Uno WiFi Rev2 may not work with self signed certificates for TLS."
-  #endif
 #endif
 
 #endif // CONFIG_H

@@ -18,11 +18,8 @@ A comprehensive sensor management system for Arduino-based environmental monitor
 
 The system is tested and supported on the following boards:
 
-- [Arduino Leonardo](https://store.arduino.cc/products/arduino-leonardo-with-headers) - Basic sensor support
-- [Arduino UNO R4 WiFi](https://store.arduino.cc/products/uno-r4-wifi) - WiFi-enabled, direct Home Assistant integration
-- [Arduino UNO WiFi R2](https://store.arduino.cc/products/arduino-uno-wifi-rev2) - WiFi-enabled, direct Home Assistant integration
-- [ESP32 S3 DevKitC 1 N16R8](https://www.amazon.co.uk/ESP32-DevKitC-WROOM1-Development-Bluetooth/dp/B0CLD4QKT1) - Advanced features, WiFi-enabled
-- [DFROBOT FireBeetle](https://wiki.dfrobot.com/FireBeetle_Board_ESP32_E_SKU_DFR0654) - Requires CH34x USB driver (see below)
+- [FireBeetle ESP32 E](https://wiki.dfrobot.com/FireBeetle_Board_ESP32_E_SKU_DFR0654) - Requires CH34x USB driver (see below)
+- [ESP32 S3 DevKitC 1](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/index.html) - Advanced features
 
 > [!NOTE]
 > While other boards supported by PlatformIO can be added, Arduino-compatible boards are recommended for easier integration.
@@ -78,8 +75,8 @@ sudo modprobe ch341
    pio run
 
    # For a specific board
-   pio run --environment uno_wifi_rev2
-   pio run --environment uno_wifi_rev2 --target upload
+   pio run --environment esp32e_firebeetle2
+   pio run --environment esp32e_firebeetle2 --target upload
    ```
 
 Common commands:
@@ -87,11 +84,11 @@ Common commands:
 | Action                  | Command Format                                        | Example                                               |
 | ----------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
 | Build (default boards)  |                                                       | `pio run`                                             |
-| Build (specific board)  | `pio run --environment {env-name}`                    | `pio run --environment uno_wifi_rev2`                 |
-| Upload (specific board) | `pio run --environment {env-name} --target upload`    | `pio run --environment uno_wifi_rev2 --target upload` |
+| Build (specific board)  | `pio run --environment {env-name}`                    | `pio run --environment esp32e_firebeetle2`                 |
+| Upload (specific board) | `pio run --environment {env-name} --target upload`    | `pio run --environment esp32e_firebeetle2 --target upload` |
 <!-- | Test                    |                                                       | `pio test --environment native`                       | -->
 | Clean (default boards)  |                                                       | `pio run --target fullclean`                          |
-| Clean (specific board)  | `pio run --environment {env-name} --target fullclean` | `pio run --environment leonardo --target fullclean`   |
+| Clean (specific board)  | `pio run --environment {env-name} --target fullclean` | `pio run --environment esp32e_firebeetle2 --target fullclean`   |
 
 ## WiFi Configuration
 
@@ -105,14 +102,6 @@ Boards that support WiFi are generally easier to work with because they transmit
 >
 > 1. Networks with captive portals do not work.
 > 2. Networks with spaces need to be escaped appropriately. For example, to connect to a network named `ASK4 Wireless`, you should use `-DWIFI_SSID=\"ASK4\ Wireless\"`. To connect to a network named `Jen's iPhone`, you should use `-DWIFI_SSID=\"Jen\'s\ iPhone\"`. At times, the device is unable to connect when there are special characters, renaming your phone should fix it, e.g `Jen's iphone` -> `JensiPhone`.
-> 3. Arduino UNO R4 WiFi, does not (yet) support enterprise WiFi.
-
-### WiFi Firmware
-
-The WiFi modules may need firmware updates to work properly such as when using an older board or you have not used a particular board for a while. In some cases, multiple attempts may be required. See:
-
-- [Arduino UNO R4 WiFi](https://support.arduino.cc/hc/en-us/articles/9670986058780-Update-the-connectivity-module-firmware-on-UNO-R4-WiFi)
-- [Arduino UNO WiFi Rev2](https://github.com/xcape-io/ArduinoProps/blob/master/help/WifiNinaFirmware.md)
 
 ## Sensor Configuration
 
@@ -184,7 +173,7 @@ There are several steps to get this working:
    ln -s ~/.platformio/penv/bin/piodebuggdb ~/.local/bin/piodebuggdb
    ```
 
-3. Build and upload the code to the arduino with: `./upload.sh leonardo`
+3. Build and upload the code to the arduino with: `./upload.sh esp32e_firebeetle2`
 4. Create a python virtual environment to host mqtt-io:
 
    ```bash

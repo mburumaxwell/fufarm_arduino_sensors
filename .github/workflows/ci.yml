@@ -69,16 +69,10 @@ jobs:
       - name: Create firmware folder
         run: |
           mkdir -p firmware
-          cp ${{ github.workspace }}/.pio/build/dfrobot_firebeetle2_esp32e/firmware.elf ${{ github.workspace }}/firmware/dfrobot_firebeetle2_esp32e.elf
-          cp ${{ github.workspace }}/.pio/build/dfrobot_firebeetle2_esp32e/firmware.bin ${{ github.workspace }}/firmware/dfrobot_firebeetle2_esp32e.bin
-          cp ${{ github.workspace }}/.pio/build/esp32-s3-devkitc1-n16r8/firmware.elf ${{ github.workspace }}/firmware/esp32-s3-devkitc1-n16r8.elf
-          cp ${{ github.workspace }}/.pio/build/esp32-s3-devkitc1-n16r8/firmware.bin ${{ github.workspace }}/firmware/esp32-s3-devkitc1-n16r8.bin
-          cp ${{ github.workspace }}/.pio/build/leonardo/firmware.elf ${{ github.workspace }}/firmware/leonardo.elf
-          cp ${{ github.workspace }}/.pio/build/leonardo/firmware.hex ${{ github.workspace }}/firmware/leonardo.hex
-          cp ${{ github.workspace }}/.pio/build/uno_r4_wifi/firmware.elf ${{ github.workspace }}/firmware/uno_r4_wifi.elf
-          cp ${{ github.workspace }}/.pio/build/uno_r4_wifi/firmware.bin ${{ github.workspace }}/firmware/uno_r4_wifi.bin
-          cp ${{ github.workspace }}/.pio/build/uno_wifi_rev2/firmware.elf ${{ github.workspace }}/firmware/uno_wifi_rev2.elf
-          cp ${{ github.workspace }}/.pio/build/uno_wifi_rev2/firmware.hex ${{ github.workspace }}/firmware/uno_wifi_rev2.hex
+          cp ${{ github.workspace }}/.pio/build/esp32e_firebeetle2/firmware.elf ${{ github.workspace }}/firmware/esp32e_firebeetle2.elf
+          cp ${{ github.workspace }}/.pio/build/esp32e_firebeetle2/firmware.bin ${{ github.workspace }}/firmware/esp32e_firebeetle2.bin
+          cp ${{ github.workspace }}/.pio/build/esp32s3_devkitc/firmware.elf ${{ github.workspace }}/firmware/esp32s3_devkitc.elf
+          cp ${{ github.workspace }}/.pio/build/esp32s3_devkitc/firmware.bin ${{ github.workspace }}/firmware/esp32s3_devkitc.bin
 
       - name: Upload Artifact (firmware)
         uses: actions/upload-artifact@v4

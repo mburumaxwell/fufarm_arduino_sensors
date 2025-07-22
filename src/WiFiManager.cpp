@@ -2,11 +2,8 @@
 
 #if HAVE_WIFI
 
+#include <esp_eap_client.h>
 #include "reboot.h"
-
-#ifdef ARDUINO_ARCH_ESP32
-#include "esp_eap_client.h"
-#endif
 
 WiFiManager::WiFiManager() : _status(WL_IDLE_STATUS)
 {
@@ -18,27 +15,8 @@ WiFiManager::~WiFiManager()
 
 void WiFiManager::begin()
 {
-#ifndef ARDUINO_ARCH_ESP32
-  // check if the WiFi module is present
-  if (WiFi.status() == WL_NO_MODULE)
-  {
-    Serial.println(F("Communication with WiFi module failed!"));
-    while (true)
-      ; // don't continue
-  }
-
-  // check firmware version of the module
-  String fv = WiFi.firmwareVersion();
-  if (fv < WIFI_FIRMWARE_LATEST_VERSION)
-  {
-    Serial.println(F("Please upgrade the firmware"));
-  }
-#endif
-
-#ifdef ARDUINO_ARCH_ESP32
   // Set WiFi to station mode and disconnect from an AP if it was previously connected.
   WiFi.mode(WIFI_STA);
-#endif
 
   WiFi.disconnect(); // Clear network stack https://forum.arduino.cc/t/mqtt-with-esp32-gives-timeout-exceeded-disconnecting/688723/5
 
@@ -69,7 +47,6 @@ void WiFiManager::printMacAddress(uint8_t mac[])
   }
 }
 
-#ifdef ARDUINO_ARCH_ESP32
 const __FlashStringHelper *encryptionTypeToString(wifi_auth_mode_t mode)
 {
   switch (mode)
@@ -96,28 +73,6 @@ const __FlashStringHelper *encryptionTypeToString(wifi_auth_mode_t mode)
     return F("unknown");
   }
 }
-#else
-const __FlashStringHelper *encryptionTypeToString(uint8_t type)
-{
-  // read the encryption type and print out the name:
-  switch (type)
-  {
-  case ENC_TYPE_WEP:
-    return F("WEP");
-  case ENC_TYPE_TKIP:
-    return F("WPA");
-  case ENC_TYPE_CCMP:
-    return F("WPA2");
-  case ENC_TYPE_NONE:
-    return F("None");
-  case ENC_TYPE_AUTO:
-    return F("Auto");
-  case ENC_TYPE_UNKNOWN:
-  default:
-    return F("Unknown");
-  }
-}
-#endif
 
 #if !WIFI_SKIP_LIST_NETWORKS
 void WiFiManager::listNetworks()
@@ -149,11 +104,7 @@ void WiFiManager::listNetworks()
       lineBuf, sizeof(lineBuf),
       "%3d | %-32.32s | %5d        | %2d | %-10.10s",
       i,
-#ifdef ARDUINO_ARCH_ESP32
       WiFi.SSID(i).c_str(), // Use c_str() to get a const char* from String
-#else
-      WiFi.SSID(i),
-#endif
       WiFi.RSSI(i),
       WiFi.channel(i),
       // Use reinterpret_cast to convert from __FlashStringHelper* to const char*
@@ -165,9 +116,7 @@ void WiFiManager::listNetworks()
   Serial.println();
 
   // Delete the scan result to free memory for code below.
-#ifdef ARDUINO_ARCH_ESP32
   WiFi.scanDelete();
-#endif
 }
 #endif
 
@@ -189,7 +138,6 @@ void WiFiManager::connect(bool initial)
   Serial.print(F("Attempting to connect to WiFi SSID: "));
   Serial.println(WIFI_SSID);
 
-#ifdef ARDUINO_ARCH_ESP32
 #if defined(WIFI_ENTERPRISE_IDENTITY)
   esp_eap_client_set_identity((uint8_t *)WIFI_ENTERPRISE_IDENTITY, strlen(WIFI_ENTERPRISE_IDENTITY));
 #endif
@@ -202,15 +150,8 @@ void WiFiManager::connect(bool initial)
 #ifdef WIFI_ENTERPRISE_PASSWORD
   esp_wifi_sta_enterprise_enable();
 #endif
-#endif
 
-#if defined(WIFI_ENTERPRISE_PASSWORD) && !defined(ARDUINO_ARCH_ESP32)
-  status = WiFi.beginEnterprise(WIFI_SSID,
-                                WIFI_ENTERPRISE_USERNAME,
-                                WIFI_ENTERPRISE_PASSWORD,
-                                WIFI_ENTERPRISE_IDENTITY,
-                                WIFI_ENTERPRISE_CA);
-#elif defined(WIFI_PASSPHRASE)
+#if defined(WIFI_PASSPHRASE)
   status = WiFi.begin(WIFI_SSID, WIFI_PASSPHRASE);
 #else
   status = WiFi.begin(WIFI_SSID);

@@ -2,25 +2,6 @@
 #include <EEPROM.h>
 #include "sensors.h"
 
-// Will be different depending on the reference voltage.
-// We use float to avoid integer overflow.
-#if defined(ARDUINO_ARCH_ESP32)
-// nothing to set there because it supports reading in millivolts
-#elif defined(ARDUINO_UNOR4_WIFI)
-#define ANALOG_REFERENCE_MILLI_VOLTS 5000.0f
-#define ANALOG_MAX_VALUE 16384 // 14 bit ADC
-#else
-#define ANALOG_REFERENCE_MILLI_VOLTS 5000.0f
-#define ANALOG_MAX_VALUE 1024 // 10 bit ADC
-#endif
-
-// to avoid possible loss of precision, multiply before dividing
-#if defined(ARDUINO_ARCH_ESP32)
-#define ANALOG_READ_MILLI_VOLTS(pin) (analogReadMilliVolts(pin))
-#else
-#define ANALOG_READ_MILLI_VOLTS(pin) ((analogRead(pin) * ANALOG_REFERENCE_MILLI_VOLTS) / ANALOG_MAX_VALUE)
-#endif
-
 #define KVALUEADDR 0x00
 
 FuFarmSensors* FuFarmSensors::_instance = nullptr;
@@ -138,12 +119,12 @@ void FuFarmSensors::calibration(uint32_t readIntervalMs)
 #endif
 
 #ifdef HAVE_EC
-    voltageEC = ANALOG_READ_MILLI_VOLTS(SENSORS_EC_PIN);
+    voltageEC = analogReadMilliVolts(SENSORS_EC_PIN);
     ecValue = ecProbe.readEC(voltageEC, temperature);
 #endif
 
 #ifdef HAVE_PH
-    voltagePH = ANALOG_READ_MILLI_VOLTS(SENSORS_PH_PIN);
+    voltagePH = analogReadMilliVolts(SENSORS_PH_PIN);
     phValue = phProbe.readPH(voltagePH, temperature);
 #endif
 
@@ -291,7 +272,7 @@ bool FuFarmSensors::readWaterLevelState()
 int32_t FuFarmSensors::readLight()
 {
 #ifdef HAVE_LIGHT
-  float voltage = ANALOG_READ_MILLI_VOLTS(SENSORS_LIGHT_PIN);
+  float voltage = analogReadMilliVolts(SENSORS_LIGHT_PIN);
   return (int32_t)(voltage / 10.0);
 #else
   return -1;
@@ -302,7 +283,7 @@ int32_t FuFarmSensors::readCO2()
 {
 #ifdef HAVE_CO2
   // Calculate CO2 concentration in ppm
-  float voltage = ANALOG_READ_MILLI_VOLTS(SENSORS_CO2_PIN);
+  float voltage = analogReadMilliVolts(SENSORS_CO2_PIN);
   if (voltage == 0.0)
     return -1.0; // Error
   else if (voltage < 400.0)
@@ -320,7 +301,7 @@ int32_t FuFarmSensors::readCO2()
 float FuFarmSensors::readEC(float temperature)
 {
 #ifdef HAVE_EC
-  float voltage = ANALOG_READ_MILLI_VOLTS(SENSORS_EC_PIN);
+  float voltage = analogReadMilliVolts(SENSORS_EC_PIN);
   return ecProbe.readEC(voltage, temperature);
 #else
   return -1;
@@ -330,7 +311,7 @@ float FuFarmSensors::readEC(float temperature)
 float FuFarmSensors::readPH(float temperature)
 {
 #ifdef HAVE_PH
-  float voltage = ANALOG_READ_MILLI_VOLTS(SENSORS_PH_PIN);
+  float voltage = analogReadMilliVolts(SENSORS_PH_PIN);
   return phProbe.readPH(voltage, temperature);
 #else
   return -1;
@@ -425,8 +406,8 @@ float FuFarmSensors::readTempWet()
 }
 
 // inspired by
-// - .pio/libdeps/leonardo/DFRobot_EC/DFRobot_EC.cpp
-// - .pio/libdeps/leonardo/DFRobot_PH/DFRobot_PH.cpp
+// - https://github.com/DFRobot/DFRobot_EC/blob/master/DFRobot_EC.cpp
+// - https://github.com/DFRobot/DFRobot_PH/blob/master/DFRobot_PH.cpp
 bool FuFarmSensors::cmdSerialDataAvailable()
 {
   char received;
