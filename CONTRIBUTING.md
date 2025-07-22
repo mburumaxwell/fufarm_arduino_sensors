@@ -52,13 +52,13 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 2. Build for a specific board:
 
    ```bash
-   pio run --environment uno_wifi_rev2
+   pio run --environment esp32e_firebeetle2
    ```
 
 3. Upload to a board:
 
    ```bash
-   pio run --environment uno_wifi_rev2 --target upload
+   pio run --environment esp32e_firebeetle2 --target upload
    ```
 
 ## Development Workflow
